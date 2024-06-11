@@ -7,12 +7,28 @@ import time
 from google.cloud import firestore
 import json
 
+# Awarded points config
 awarded_points = {
     "All Correct": 3,
     "Partial Correct": 1,
     "All Wrong": 0,
     "Penalty": -0.75,
 }
+
+# Confidence levels config
+confidence_levels = {
+    "I'm always wrong": 0,
+    "No so good at this": 0.25,
+    "No better than flipping a coin": 0.5,
+    "Somewhat confident": 0.75,
+    "I can see the future!": 1,
+}
+
+@st.experimental_dialog("Assistant", )
+def display_assistant():
+    with st.container(height=200):
+        if prompt := st.chat_input():
+            st.chat_message("human").write(prompt)
 
 
 def get_firestore_database():

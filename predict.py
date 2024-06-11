@@ -10,6 +10,7 @@ import time
 # Page config
 st.set_page_config(
     page_title="Predict",
+    page_icon="⚽",
     initial_sidebar_state="expanded",
 )
 
@@ -17,23 +18,15 @@ st.set_page_config(
 def reset_inputs():
     st.session_state.input_prediction = 0
     st.session_state.input_confidence_level = [
-        k for k, v in confidence_levels.items() if v == 0.5
+        k for k, v in auth.confidence_levels.items() if v == 0.5
     ][0]
-
-
-@st.experimental_dialog("Prediction Reciept")
-def display_prediction_reciept(prediction):
-    st.write("SDFSDF")
-    st.download_button(
-        "Download Reciept",
-        data=prediction.to_json(orient="records"),
-        file_name="rrr.txt",
-    )
 
 
 if auth.get_username() is None:
     auth.display_user_login()
 else:
+    if st.button("Your Assistant"):
+        auth.display_assistant()
     st.header("Predict Euro 2024")
     st.subheader(f"Hi {st.session_state.username}!")
 
@@ -116,20 +109,12 @@ else:
                 )
                 auth.display_vertical_spaces(1)
 
-            # Confidence levels
-            confidence_levels = {
-                "I'm always wrong": 0,
-                "No so good at this": 0.25,
-                "No better than flipping a coin": 0.5,
-                "Somewhat confident": 0.75,
-                "I can see the future!": 1,
-            }
 
             auth.display_vertical_spaces(2)
             confidence_level = st.select_slider(
                 "Confidence Level:",
-                options=[k for k, v in confidence_levels.items()],
-                value=[k for k, v in confidence_levels.items() if v == 0.5][0],
+                options=[k for k, v in auth.confidence_levels.items()],
+                value=[k for k, v in auth.confidence_levels.items() if v == 0.5][0],
                 key="input_confidence_level",
                 help="Do not have an impact on the score calculation.",
             )
@@ -194,7 +179,7 @@ else:
                         "username": st.session_state.username,
                         "match": match,
                         "prediction": prediction,
-                        "confidence_level": confidence_levels[confidence_level],
+                        "confidence_level": auth.confidence_levels[confidence_level],
                     }
                     if auth.add_firestore_documents(
                         collection="predictions",
