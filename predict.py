@@ -7,28 +7,25 @@ import pandas as pd
 import datetime as dt
 import time
 
-# Page config
-st.set_page_config(
-    page_title="Predict",
-    page_icon="⚽",
-    initial_sidebar_state="expanded",
-)
 
-
-def reset_inputs():
+def reset_inputs(): 
     st.session_state.input_prediction = 0
     st.session_state.input_confidence_level = [
         k for k, v in auth.confidence_levels.items() if v == 0.5
     ][0]
 
 
+def adjust_goal(*args):
+    st.session_state.input_prediction += args[0]
+
+
+# Page config
+auth.set_page_config()
+
 if auth.get_username() is None:
     auth.display_user_login()
 else:
-    if st.button("Your Assistant"):
-        auth.display_assistant()
-    st.header("Predict Euro 2024")
-    st.subheader(f"Hi {st.session_state.username}!")
+    st.write(f"###### You are viewing as: {st.session_state.username}")
 
     auth.display_vertical_spaces(2)
     # Matrics
@@ -69,46 +66,47 @@ else:
 
             # Vertical spaces
             auth.display_vertical_spaces(2)
-            st.subheader(f"{home_team} vs {away_team}")
+            st.write(f"##### You are predicting: {home_team} vs {away_team}")
 
             # Vertical spaces
             auth.display_vertical_spaces(2)
             prediction = st.slider(
                 "Prediction:",
-                min_value=-10,
-                max_value=10,
+                min_value=-7,
+                max_value=7,
                 value=0,
                 key="input_prediction",
                 help="Goals difference",
             )
 
-            with st.expander("What does your prediction mean?", expanded=False):
-                st.write(f"""Your prediction is **{prediction}**.""")
-                if prediction > 0:
-                    st.write(
-                        f"This means your predicted that **{home_team}** will score **{prediction}** goals more than **{away_team}**."
-                    )
-                elif prediction == 0:
-                    st.write(
-                        f"This means your predicted that **{home_team}** will score the same number of goals as **{away_team}**."
-                    )
-                else:
-                    st.write(
-                        f"This means your predicted that **{home_team}** will score **{prediction*-1}** goals less than **{away_team}**."
-                    )
-                st.write(
-                    f"""
-                    Points will be awarded as below:
-                    
-                    |Outcome|Points|
-                    |---|---|
-                    |Correct goals difference|{auth.awarded_points["All Correct"]}|
-                    |Correct winning team, but wrong goals difference|{auth.awarded_points["Partial Correct"]}|
-                    |All wrong|{auth.awarded_points["All Wrong"]}|
-                    """
-                )
-                auth.display_vertical_spaces(1)
-
+            # Align right on 2nd column
+            # st.markdown(
+            #     """
+            #     <style>
+            #         div[data-testid='column']:nth-of-type(2)
+            #         {
+            #             text-align: end;
+            #         }
+            #     </style>
+            #     """,
+            #     unsafe_allow_html=True,
+            # )
+            # Create column
+            # col0, col1 = st.columns(2)
+            # with col0:
+            #     st.button(
+            #         f"{away_team}",
+            #         key="input_minus_goal",
+            #         on_click=adjust_goal,
+            #         args=[-1],
+            #     )
+            # with col1:
+            #     st.button(
+            #         f"{home_team}",
+            #         key="input_plus_goal",
+            #         on_click=adjust_goal,
+            #         args=[1],
+            #     )
 
             auth.display_vertical_spaces(2)
             confidence_level = st.select_slider(
@@ -116,7 +114,7 @@ else:
                 options=[k for k, v in auth.confidence_levels.items()],
                 value=[k for k, v in auth.confidence_levels.items() if v == 0.5][0],
                 key="input_confidence_level",
-                help="Do not have an impact on the score calculation.",
+                help="Does not have an impact on the score calculation. Will be displayed to others just for fun.",
             )
 
             # # Vertical spaces
@@ -150,6 +148,34 @@ else:
             #     auth.display_vertical_spaces(1)
 
             auth.display_vertical_spaces(2)
+            with st.expander("What does your prediction mean?", expanded=False):
+                st.write(f"""Your prediction is **{prediction}**.""")
+                if prediction > 0:
+                    st.write(
+                        f"This means your predicted that **{home_team}** will score **{prediction}** goals more than **{away_team}**."
+                    )
+                elif prediction == 0:
+                    st.write(
+                        f"This means your predicted that **{home_team}** will score the same number of goals as **{away_team}**."
+                    )
+                else:
+                    st.write(
+                        f"This means your predicted that **{home_team}** will score **{prediction*-1}** goals less than **{away_team}**."
+                    )
+                st.write(
+                    f"""
+                    Points will be awarded as below:
+                    
+                    |Outcome|Points|
+                    |---|---|
+                    |Correct goals difference|{auth.awarded_points["All Correct"]}|
+                    |Correct winning team, but wrong goals difference|{auth.awarded_points["Partial Correct"]}|
+                    |All wrong|{auth.awarded_points["All Wrong"]}|
+                    """
+                )
+                auth.display_vertical_spaces(1)
+
+            auth.display_vertical_spaces(2)
             if st.button(
                 "Submit",
                 type="primary",
@@ -174,8 +200,9 @@ else:
                     # )
                     # if auth.update_data_gsheets("predictions", updated_predicions):
                     temp_prediction = {
-                        "timestamp": dt.datetime.today()
-                        .astimezone(tz=dt.timezone(dt.timedelta(hours=7))),
+                        "timestamp": dt.datetime.today().astimezone(
+                            tz=dt.timezone(dt.timedelta(hours=7))
+                        ),
                         "username": st.session_state.username,
                         "match": match,
                         "prediction": prediction,

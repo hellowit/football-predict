@@ -24,6 +24,14 @@ confidence_levels = {
     "I can see the future!": 1,
 }
 
+def set_page_config():
+    # Page config
+    st.set_page_config(
+        page_title="football-predict",
+        page_icon="⚽",
+        initial_sidebar_state="expanded",
+    )
+
 @st.experimental_dialog("Assistant", )
 def display_assistant():
     with st.container(height=200):

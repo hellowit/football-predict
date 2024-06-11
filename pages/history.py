@@ -3,14 +3,12 @@ import streamlit as st
 import auth
 
 # Page config
-st.set_page_config(
-    page_title="History",
-    initial_sidebar_state="expanded",
-)
+auth.set_page_config()
 
 if auth.get_username() is None:
     auth.display_user_login()
 else:
+    st.write(f"###### You are viewing as: {st.session_state.username}")
     # Get predictions
     predictions = auth.get_firestore_documents(collection="predictions")
     # Filter username
