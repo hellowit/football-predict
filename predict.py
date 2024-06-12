@@ -8,11 +8,12 @@ import datetime as dt
 import time
 
 
-def reset_inputs(): 
+def reset_inputs():
     st.session_state.input_prediction = 0
     st.session_state.input_confidence_level = [
         k for k, v in auth.confidence_levels.items() if v == 0.5
     ][0]
+    st.session_state.reset_inputs = False
 
 
 def adjust_goal(*args):
@@ -21,6 +22,12 @@ def adjust_goal(*args):
 
 # Page config
 auth.set_page_config()
+
+if "reset_inputs" not in st.session_state:
+    st.session_state.reset_inputs = False
+
+if st.session_state.reset_inputs:
+    reset_inputs()
 
 if auth.get_username() is None:
     auth.display_user_login()
@@ -35,6 +42,7 @@ else:
     col2.metric("% Accuracy", "99%", "-8%")
 
     auth.display_vertical_spaces(2)
+    # Create tabs
     (tab0,) = st.tabs(["New Prediction"])
     with tab0:
         # Get matches
@@ -46,6 +54,7 @@ else:
             future_matches["is_future_match"] == True, :
         ].iloc[:3, :]
 
+        # Check if there is any available future matches
         if future_matches.shape[0] == 0:
             st.write("There is no more matches to predict!")
         else:
@@ -57,6 +66,7 @@ else:
                 on_change=reset_inputs,
             )
 
+            # Get teams
             home_team = future_matches.loc[
                 future_matches["match"] == match, "home"
             ].iloc[0]
@@ -64,19 +74,16 @@ else:
                 future_matches["match"] == match, "away"
             ].iloc[0]
 
-            # Vertical spaces
             auth.display_vertical_spaces(2)
             st.write(f"##### You are predicting: {home_team} vs {away_team}")
 
-            # Vertical spaces
             auth.display_vertical_spaces(2)
             prediction = st.slider(
-                "Prediction:",
+                "Prediction (Goals Difference):",
                 min_value=-7,
                 max_value=7,
                 value=0,
                 key="input_prediction",
-                help="Goals difference",
             )
 
             # Align right on 2nd column
@@ -114,7 +121,7 @@ else:
                 options=[k for k, v in auth.confidence_levels.items()],
                 value=[k for k, v in auth.confidence_levels.items() if v == 0.5][0],
                 key="input_confidence_level",
-                help="Does not have an impact on the score calculation. Will be displayed to others just for fun.",
+                help="This does not impact the score calculation, but may be displayed to others just for fun.",
             )
 
             # # Vertical spaces
@@ -199,6 +206,7 @@ else:
                     #     [predictions, temp_prediction], ignore_index=True
                     # )
                     # if auth.update_data_gsheets("predictions", updated_predicions):
+                    # Create prediction dict
                     temp_prediction = {
                         "timestamp": dt.datetime.today().astimezone(
                             tz=dt.timezone(dt.timedelta(hours=7))
@@ -208,8 +216,13 @@ else:
                         "prediction": prediction,
                         "confidence_level": auth.confidence_levels[confidence_level],
                     }
+                    # Add prediction to database
                     if auth.add_firestore_documents(
                         collection="predictions",
                         document_data=temp_prediction,
                     ):
                         st.success("Prediction submitted!")
+                        st.balloons()
+                        # Reset after rerun
+                        st.session_state.reset_inputs = True
+                        st.rerun()

@@ -12,4 +12,3 @@ else:
     matches = auth.get_data_gsheets(
         worksheet="matches", usecols=list(range(8))
     )
-    st.write(matches)   

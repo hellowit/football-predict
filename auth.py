@@ -18,11 +18,12 @@ awarded_points = {
 # Confidence levels config
 confidence_levels = {
     "I'm always wrong": 0,
-    "No so good at this": 0.25,
-    "No better than flipping a coin": 0.5,
-    "Somewhat confident": 0.75,
+    "Trust me on this": 0.25,
+    "50:50": 0.5,
+    "I'd bet my house": 0.75,
     "I can see the future!": 1,
 }
+
 
 def set_page_config():
     # Page config
@@ -32,7 +33,10 @@ def set_page_config():
         initial_sidebar_state="expanded",
     )
 
-@st.experimental_dialog("Assistant", )
+
+@st.experimental_dialog(
+    "Assistant",
+)
 def display_assistant():
     with st.container(height=200):
         if prompt := st.chat_input():
@@ -104,12 +108,12 @@ def display_vertical_spaces(rows):
 def display_user_login():
     # SecurityKey list
     securitykey_list = [
-        "Avocado",
-        "Banana",
-        "Lychee",
-        "Melon",
-        "Orange",
-        "Pineapple",
+        "Avocado 🥑",
+        "Banana 🍌",
+        "Coconut 🥥",
+        "Melon 🍈",
+        "Orange 🍊",
+        "Pineapple 🍍",
     ]
 
     # Create tabs
@@ -135,16 +139,19 @@ def display_user_login():
                     key,
                     key=f"securitykey_{key}",
                 )
-
             # Login button
             if st.form_submit_button(
                 "Login",
                 type="primary",
             ):
                 with st.spinner("Processing..."):
-                    if len(input_username) > 0:
+                    if input_username is not None:
                         temp_securitykey = ", ".join(
-                            [k for k, v in input_securitykey.items() if v]
+                            [
+                                k[: k.find(" ")]
+                                for k, v in input_securitykey.items()
+                                if v
+                            ]
                         )
                         if (
                             temp_securitykey
@@ -183,9 +190,9 @@ def display_user_login():
             ):
                 with st.spinner("Processing..."):
                     temp_securitykey = ", ".join(
-                        [k for k, v in reg_securitykey.items() if v]
+                        [k[: k.find(" ")] for k, v in reg_securitykey.items() if v]
                     )
-                    if len(reg_username) >= 3 and temp_securitykey != "":
+                    if len(reg_username) >= 2 and temp_securitykey != "":
                         # Get users
                         # users = get_data_gsheets(
                         #     worksheet="users", usecols=list(range(2)), ttl=0
@@ -223,4 +230,11 @@ def display_user_login():
                                 st.rerun()
 
                     else:
-                        st.error("Username must be 3 characters or more!")
+                        st.error("Username must be 2 characters or more!")
+
+def display_user_metrics():
+    # st.metric("Rank", rank, a)
+    pass
+
+def get_user_score():
+    get_firestore_documents(collection="matches")
