@@ -8,7 +8,7 @@ auth.set_page_config()
 if auth.get_username() is None:
     auth.display_user_login()
 else:
+    st.write(f"You are viewing as: **{st.session_state.username}**")
     # Get matches
-    matches = auth.get_data_gsheets(
-        worksheet="matches", usecols=list(range(8))
-    )
+    matches = auth.get_matches()
+    st.write(matches)
