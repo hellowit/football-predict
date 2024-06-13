@@ -17,6 +17,7 @@ def reset_inputs():
     manage_extra_points_inputs([""])
     st.session_state.reset_inputs = False
 
+
 def manage_extra_points_inputs(key):
     # Unselect other extra points inputs
     for k in st.session_state:
@@ -25,14 +26,27 @@ def manage_extra_points_inputs(key):
                 st.session_state[k] = False
 
 
-@st.experimental_dialog("Thank you")
-def display_dialog():
-    st.session_state.submitted = False
-    st.success("Prediction Submitted!")
+# @st.experimental_dialog("Thank you")
+def display_submitted_dialog():
+    st.balloons()
+    st.toast("Prediction Submitted!")
+
+
+def display_unsubmitted_matches():
+    # Get matches
+    matches = auth.get_matches()
+    # Get pridictions
+    predictions = auth.get_predictions()
+    predictions = predictions.loc[predictions["rank"] == 1, :]
+    for i in range(predictions.shape[0]):
+        st.toast(predictions.iloc[i, :])
 
 
 # Page config
 auth.set_page_config()
+
+if "initial" not in st.session_state:
+    st.session_state.initial = True
 
 if "reset_inputs" not in st.session_state:
     st.session_state.reset_inputs = False
@@ -46,10 +60,13 @@ if "submitted" not in st.session_state:
 if auth.get_username() is None:
     auth.display_user_login()
 else:
+    if st.session_state.initial:
+        st.session_state.initial = False
+        display_unsubmitted_matches()
     # Display submitted dialog
     if st.session_state.submitted:
-        st.balloons()
-        display_dialog()
+        st.session_state.submitted = False
+        display_submitted_dialog()
     st.write(f"You are viewing as: **{st.session_state.username}**")
     # Create tabs
     (tab0,) = st.tabs(["New Prediction"])
@@ -59,7 +76,7 @@ else:
         # Filter for top 3 future matches only
         future_matches = future_matches.loc[
             future_matches["is_future_match"] == True, :
-        ].iloc[:3, :]
+        ].sort_values("datetime").iloc[:3, :]
 
         # Check if there is any available future matches
         if future_matches.shape[0] == 0:
@@ -70,6 +87,7 @@ else:
                 "Match:",
                 options=future_matches.loc[:, "match"],
                 index=0,
+                key="input_match",
                 on_change=reset_inputs,
             )
 
@@ -159,15 +177,15 @@ else:
                 st.write(f"""Your prediction is **{prediction}**.""")
                 if prediction > 0:
                     st.write(
-                        f"This means your predicted that **{home_team}** will score **{prediction}** goals more than **{away_team}**."
+                        f"This means you predicted that **{home_team}** will score **{prediction}** goals more than **{away_team}**."
                     )
                 elif prediction == 0:
                     st.write(
-                        f"This means your predicted that **{home_team}** will score the same number of goals as **{away_team}**."
+                        f"This means you predicted that **{home_team}** will score the same number of goals as **{away_team}**."
                     )
                 else:
                     st.write(
-                        f"This means your predicted that **{home_team}** will score **{prediction*-1}** goals less than **{away_team}**."
+                        f"This means you predicted that **{home_team}** will score **{prediction*-1}** goals less than **{away_team}**."
                     )
 
                 # Get rewarded points

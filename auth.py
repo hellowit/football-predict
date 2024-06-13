@@ -47,7 +47,7 @@ def set_page_config():
     st.set_page_config(
         page_title="football-predict",
         page_icon="⚽",
-        initial_sidebar_state="expanded",
+        # initial_sidebar_state="expanded",
     )
     with st.sidebar:
         if st.button("Force Refresh"):
@@ -203,7 +203,7 @@ def add_firestore_documents(collection, document_data, id=None, merge=True):
     return True
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=600)
 def get_predictions():
     # Get predictions
     predictions = get_firestore_documents(collection="predictions")
