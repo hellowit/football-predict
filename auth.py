@@ -296,6 +296,8 @@ def display_user_login():
         "Avocado 🥑",
         "Banana 🍌",
         "Coconut 🥥",
+        "Grape 🍇",
+        "Lemon 🍋",
         "Melon 🍈",
         "Orange 🍊",
         "Pineapple 🍍",
