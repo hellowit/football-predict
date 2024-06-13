@@ -14,18 +14,32 @@ from bs4 import BeautifulSoup
 
 # Extra points config
 extra_points_items = {
-    "extra_points_mult_2": {
-        "name": "Points x2",
+    "extra_points_mult_3": {
+        "name": "Points x3",
+        "operator": "mult",
+        "rewards": {
+            "Correct": 3,
+            "Correct - Tied": 3,
+            "Partial Correct": 3,
+            "Totally Wrong": 3,
+        },
         "usage_limit": 2,
     },
     "extra_points_add_10": {
         "name": "Points +10 (-10 Penalty)",
-        "usage_limit": 1,
+        "operator": "add",
+        "rewards": {
+            "Correct": 10,
+            "Correct - Tied": 10,
+            "Partial Correct": 10,
+            "Totally Wrong": -10,
+        },
+        "usage_limit": 2,
     },
 }
 
 # Awarded points config
-rewarded_points = {
+base_points = {
     "Correct": 3,
     "Correct - Tied": 2,
     "Partial Correct": 1,
@@ -37,9 +51,50 @@ confidence_levels = {
     "I'm always wrong": 0,
     "I have a bad feeling about this": 0.25,
     "50:50": 0.5,
-    "Trust me on this": 0.75,
+    "Trust me, I'm an analyst": 0.75,
     "I can see the future!": 1,
 }
+
+bar_color = {
+    "I'm always wrong": "rgb(235, 137, 95)",
+    "I have a bad feeling about this": "rgb(245, 196, 175)",
+    "50:50": "rgb(150, 150, 150)",
+    "Trust me, I'm an analyst": "rgb(170, 211, 82)",
+    "I can see the future!": "rgb(99, 110, 250)",
+}
+
+
+def get_rewarded_points(extra_points, base_points=base_points):
+    if extra_points is not None:
+        # Combine base rewarded points with extra points factor
+        adjusted_rewarded_points = pd.DataFrame(
+            {
+                "base": base_points,
+                "factor": extra_points_items[extra_points]["rewards"],
+            }
+        )
+        # Get operator
+        operator = extra_points_items[extra_points]["operator"]
+        # Calculate new rewarded points, based on operator
+        if operator == "mult":
+            adjusted_rewarded_points.loc[:, "rewarded_points"] = (
+                adjusted_rewarded_points.loc[:, "base"]
+                * adjusted_rewarded_points.loc[:, "factor"]
+            )
+        elif operator == "add":
+            adjusted_rewarded_points.loc[:, "rewarded_points"] = (
+                adjusted_rewarded_points.loc[:, "base"]
+                + adjusted_rewarded_points.loc[:, "factor"]
+            )
+        # Convert rewarded points to dict
+        adjusted_rewarded_points = adjusted_rewarded_points.loc[
+            :, "rewarded_points"
+        ].to_dict()
+    else:
+        # Return base rewarded points if, no extra points item used
+        adjusted_rewarded_points = base_points
+
+    return adjusted_rewarded_points
 
 
 def set_page_config():
@@ -156,6 +211,19 @@ def get_matches_from_wikipedia():
     matches.loc[:, "is_future_match"] = matches.loc[:, "datetime"] >= get_datetime_now()
 
     return matches
+
+
+def get_future_matches(n):
+    # Get matches
+    matches = get_matches()
+    # Filter for top 3 future matches only
+    future_matches = (
+        matches.loc[matches["is_future_match"] == True, :]
+        .sort_values("datetime")
+        .iloc[:n, :]
+    )
+
+    return future_matches
 
 
 @st.cache_data(ttl=600)
@@ -297,7 +365,7 @@ def display_user_login():
         "Banana 🍌",
         "Coconut 🥥",
         "Grape 🍇",
-        "Lemon 🍋",
+        "Kiwi 🥝",
         "Melon 🍈",
         "Orange 🍊",
         "Pineapple 🍍",
@@ -400,10 +468,10 @@ def display_user_login():
                                 id=reg_username,
                             ):
                                 # Display completed messages
-                                st.success("Registration completed!")
                                 st.balloons()
-                                st.warning("Redirecting to home...")
-                                time.sleep(5)
+                                st.toast("Registration completed!", icon="😃")
+                                st.toast("Redirecting to home...", icon="😬")
+                                time.sleep(3)
                                 # Auto login with registered username
                                 st.session_state.username = reg_username
                                 # Force clear function cache

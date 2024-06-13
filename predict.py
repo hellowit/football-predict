@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 
+import plotly.graph_objects as go
+
 import time
 
 
@@ -29,17 +31,34 @@ def manage_extra_points_inputs(key):
 # @st.experimental_dialog("Thank you")
 def display_submitted_dialog():
     st.balloons()
-    st.toast("Prediction Submitted!")
+    st.toast("Prediction Submitted!", icon="😃")
 
 
 def display_unsubmitted_matches():
-    # Get matches
-    matches = auth.get_matches()
+    # Get future matches
+    future_matches = auth.get_future_matches(3)
     # Get pridictions
     predictions = auth.get_predictions()
+    # Filter latest
     predictions = predictions.loc[predictions["rank"] == 1, :]
-    for i in range(predictions.shape[0]):
-        st.toast(predictions.iloc[i, :])
+    # Filter username
+    user_predictions = predictions.loc[
+        predictions["username"] == st.session_state.username, :
+    ]
+    # Find unsubmitted predictions
+    unsubmitted_matches = (
+        future_matches.loc[:, ["match", "datetime"]]
+        .set_index("match")
+        .join(
+            user_predictions.loc[:, ["match", "timestamp"]].set_index("match"),
+            how="left",
+        )
+    )
+    unsubmitted_matches = unsubmitted_matches.loc[
+        unsubmitted_matches["timestamp"].isnull(), :
+    ]
+    for match in unsubmitted_matches.index:
+        st.toast(f"Please submit your prediction for **{match}**.", icon="⚽️")
 
 
 # Page config
@@ -63,68 +82,62 @@ else:
     if st.session_state.initial:
         st.session_state.initial = False
         display_unsubmitted_matches()
+        reset_inputs()
     # Display submitted dialog
     if st.session_state.submitted:
         st.session_state.submitted = False
         display_submitted_dialog()
-    st.write(f"You are viewing as: **{st.session_state.username}**")
-    # Create tabs
-    (tab0,) = st.tabs(["New Prediction"])
-    with tab0:
-        # Get matches
-        future_matches = auth.get_matches()
-        # Filter for top 3 future matches only
-        future_matches = future_matches.loc[
-            future_matches["is_future_match"] == True, :
-        ].sort_values("datetime").iloc[:3, :]
+    st.markdown(f"You are viewing as: **{st.session_state.username}**")
 
-        # Check if there is any available future matches
-        if future_matches.shape[0] == 0:
-            st.write("There is no more matches to predict!")
-        else:
-            # Select a match
-            match = st.selectbox(
-                "Match:",
-                options=future_matches.loc[:, "match"],
-                index=0,
-                key="input_match",
-                on_change=reset_inputs,
-            )
+    # Get future matches
+    future_matches = auth.get_future_matches(3)
+    # Check if there is any available future matches
+    if future_matches.shape[0] == 0:
+        st.markdown("There is no more matches to predict!")
+    else:
+        # Select a match
+        match = st.selectbox(
+            "Match:",
+            options=future_matches.loc[:, "match"],
+            index=0,
+            key="input_match",
+            on_change=reset_inputs,
+        )
+        # Get teams
+        home_team = future_matches.loc[
+            future_matches["match"] == match, "home_team"
+        ].iloc[0]
+        away_team = future_matches.loc[
+            future_matches["match"] == match, "away_team"
+        ].iloc[0]
+        # Get predictions
+        predictions = auth.get_predictions()
+        # Filter latest
+        predictions = predictions.loc[predictions["rank"] == 1, :]
+        # Filter username
+        user_predictions = predictions.loc[
+            predictions["username"] == st.session_state.username, :
+        ]
+        # Create tabs
+        tab0, tab1 = st.tabs(["New Prediction", "Statistics"])
+        with tab0:
+            st.markdown(f"You are predicting:")
+            st.markdown(f"##### {home_team} vs {away_team}")
 
-            # Get teams
-            home_team = future_matches.loc[
-                future_matches["match"] == match, "home_team"
-            ].iloc[0]
-            away_team = future_matches.loc[
-                future_matches["match"] == match, "away_team"
-            ].iloc[0]
-
-            auth.display_vertical_spaces(2)
-            st.write(f"You are predicting:")
-            st.write(f"##### {home_team} vs {away_team}")
-
-            auth.display_vertical_spaces(2)
+            auth.display_vertical_spaces(1)
             # Goals difference input
             prediction = st.slider(
                 "Prediction (Goals Difference):",
                 min_value=-7,
                 max_value=7,
-                value=0,
+                # value=0,
                 key="input_prediction",
             )
 
-            # Get predictions
-            predictions = auth.get_predictions()
-            # Filter username
-            predictions = predictions.loc[
-                predictions["username"] == st.session_state.username, :
-            ]
-            # Filter latest
-            predictions = predictions.loc[predictions["rank"] == 1, :]
             # Join usage limits with usage counts
             extra_points_usage_limits = (
                 pd.DataFrame(auth.extra_points_items)
-                .T.join(predictions.loc[:, "extra_points"].value_counts())
+                .T.join(user_predictions.loc[:, "extra_points"].value_counts())
                 .fillna(0)
             )
             # Calculate extra points items available to use
@@ -136,7 +149,7 @@ else:
                 :, "available"
             ].to_dict()
 
-            auth.display_vertical_spaces(2)
+            auth.display_vertical_spaces(1)
             extra_points = {}
             auth.display_checkbox_group("Extra Points:")
             auth.display_vertical_spaces(1)
@@ -145,7 +158,7 @@ else:
                 for k, _ in auth.extra_points_items.items():
                     extra_points[k] = st.toggle(
                         auth.extra_points_items[k]["name"],
-                        value=False,
+                        # value=False,
                         key=f"input_{k}",
                         on_change=manage_extra_points_inputs,
                         args=(f"input_{k}",),
@@ -161,57 +174,48 @@ else:
             ]
             extra_points = None if extra_points == [] else extra_points[0]
 
-            auth.display_vertical_spaces(2)
+            auth.display_vertical_spaces(1)
             # Confidence level input
             confidence_level = st.select_slider(
                 "Confidence Level:",
                 options=[k for k, v in auth.confidence_levels.items()],
-                value=[k for k, v in auth.confidence_levels.items() if v == 0.5][0],
+                # value=[k for k, v in auth.confidence_levels.items() if v == 0.5][0],
                 key="input_confidence_level",
                 help="This does not impact the score calculation, but may be displayed to others just for fun.",
             )
 
-            auth.display_vertical_spaces(2)
+            auth.display_vertical_spaces(1)
             with st.expander("What does your prediction mean?", expanded=False):
                 # Explain about the prediction number
-                st.write(f"""Your prediction is **{prediction}**.""")
+                st.markdown(f"""Your prediction is **{prediction}**.""")
                 if prediction > 0:
-                    st.write(
+                    st.markdown(
                         f"This means you predicted that **{home_team}** will score **{prediction}** goals more than **{away_team}**."
                     )
                 elif prediction == 0:
-                    st.write(
+                    st.markdown(
                         f"This means you predicted that **{home_team}** will score the same number of goals as **{away_team}**."
                     )
                 else:
-                    st.write(
+                    st.markdown(
                         f"This means you predicted that **{home_team}** will score **{prediction*-1}** goals less than **{away_team}**."
                     )
 
                 # Get rewarded points
-                rewarded_points = auth.rewarded_points.copy()
+                rewarded_points = auth.get_rewarded_points(extra_points)
 
                 # Explain about the extra points items
                 if extra_points == "extra_points_mult_2":
-                    st.write(
+                    st.markdown(
                         f"""You also use **{auth.extra_points_items[extra_points]["name"]}**, which will multiply your rewarded points by the factor of 2."""
                     )
-                    # Calculate example rewarded points
-                    rewarded_points["Correct"] *= 2
-                    rewarded_points["Correct - Tied"] *= 2
-                    rewarded_points["Partial Correct"] *= 2
-                    rewarded_points["Totally Wrong"] *= 2
+
                 elif extra_points == "extra_points_add_10":
-                    st.write(
+                    st.markdown(
                         f"""You also use **{auth.extra_points_items[extra_points]["name"]}**, which will add 10 additional points to your rewarded points. However, this will subtract 10 points from your rewarded points if your prediction is totally wrong."""
                     )
-                    # Calculate example rewarded points
-                    rewarded_points["Correct"] += 10
-                    rewarded_points["Correct - Tied"] += 10
-                    rewarded_points["Partial Correct"] += 10
-                    rewarded_points["Totally Wrong"] -= 10
                 # Example rewarded points
-                st.write(
+                st.markdown(
                     f"""
                     Points will be rewarded as below:
                     
@@ -225,7 +229,7 @@ else:
                 )
                 auth.display_vertical_spaces(1)
 
-            auth.display_vertical_spaces(2)
+            auth.display_vertical_spaces(1)
             if st.button(
                 "Submit",
                 type="primary",
@@ -252,3 +256,123 @@ else:
                         # Force clear function cache
                         auth.get_predictions.clear()
                         st.rerun()
+        with tab1:
+            # Filter predictions for current match
+            match_predictions = predictions.loc[predictions["match"] == match, :]
+            match_predictions = match_predictions.set_index("username")
+
+            df = (
+                match_predictions.loc[
+                    :, ["confidence_level", "confidence_level_text", "prediction"]
+                ]
+                .value_counts()
+                .rename("count")
+                .reset_index()
+            )
+            # Create plotly plot
+            fig = go.Figure()
+            # Force display category
+            fig.add_trace(
+                go.Bar(
+                    x=[i for i in range(-7, 8, 1)],
+                    y=[0 for _ in range(-7, 8, 1)],
+                    showlegend=False,
+                ),
+            )
+            # Iterate each user's prediction
+            for confidence_level_text in df.loc[
+                :, "confidence_level_text"
+            ].drop_duplicates():
+                fig.add_trace(
+                    go.Bar(
+                        x=df.loc[
+                            df["confidence_level_text"] == confidence_level_text,
+                            "prediction",
+                        ],
+                        y=df.loc[
+                            df["confidence_level_text"] == confidence_level_text,
+                            "count",
+                        ],
+                        name=confidence_level_text,
+                        marker_color=auth.bar_color[confidence_level_text],
+                    ),
+                )
+            fig.update_layout(
+                barmode="stack",
+                hoverlabel=dict(
+                    font_size=14,
+                ),
+                showlegend=True,
+                legend=dict(
+                    orientation="h",
+                    # entrywidth=70,
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1,
+                ),
+            )
+            fig.update_yaxes(
+                title_text="Number of Predictions",
+                title_font=dict(size=12, color="rgb(150, 150, 150)"),
+                dtick=1,
+            )
+            fig.update_xaxes(
+                # showgrid=True,
+                ticks="outside",
+                tickson="boundaries",
+                ticklen=15,
+                title_text="Prediction (Goals Difference)",
+                title_font=dict(size=12, color="rgb(150, 150, 150)"),
+                tickmode="array",
+                tickvals=[i for i in range(-7, 8, 1)],
+                type="category",
+                griddash="solid",
+            )
+            st.plotly_chart(fig)
+
+
+# fig = go.Figure()
+# # Force display category
+# fig.add_trace(
+#     go.Bar(
+#         x=[i for i in range(-7, 8, 1)],
+#         y=[0 for _ in range(-7, 8, 1)],
+#         showlegend=False,
+#     ),
+# )
+# # Iterate each user's prediction
+# for i in range(match_predictions.shape[0]):
+#     row_index = match_predictions.index[i]
+#     confidence_level_text = match_predictions.loc[row_index, "confidence_level_text"]
+#     fig.add_trace(
+#         go.Bar(
+#             x=[match_predictions.loc[row_index, "prediction"]],
+#             y=[1],
+#             name=row_index,
+#             legendgroup=confidence_level_text,
+#             legendgrouptitle_text=confidence_level_text,
+#             marker_color=auth.bar_color[confidence_level_text]
+#         ),
+#     )
+# fig.update_layout(
+#     barmode="stack",
+# )
+# fig.update_yaxes(
+#     title_text="Number of Predictions",
+#     title_font=dict(size=12, color="rgb(150, 150, 150)"),
+#     dtick=1,
+# )
+# fig.update_xaxes(
+#     # showgrid=True,
+#     ticks="outside",
+#     tickson="boundaries",
+#     ticklen=15,
+#     title_text="Prediction (Goals Difference)",
+#     title_font=dict(size=12, color="rgb(150, 150, 150)"),
+#     tickmode="array",
+#     tickvals=[i for i in range(-7, 8, 1)],
+#     type="category",
+#     griddash="solid",
+# )
+# st.plotly_chart(fig)
