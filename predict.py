@@ -89,7 +89,7 @@ else:
     st.markdown(f"You are viewing as: **{st.session_state.username}**")
 
     # Get future matches
-    future_matches = auth.get_future_matches(3)
+    future_matches = auth.get_future_matches(6)
     # Check if there is any available future matches
     if future_matches.shape[0] == 0:
         st.markdown("There is no more matches to predict!")
