@@ -50,6 +50,7 @@ if auth.get_username() is None:
     auth.display_user_login()
 else:
     st.write(f"You are viewing as: **{st.session_state.username}**")
+    
     # Create source link
     st.link_button("Source: Wikipedia", "https://en.wikipedia.org/wiki/UEFA_Euro_2024")
     st.caption(

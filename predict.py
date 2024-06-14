@@ -86,6 +86,7 @@ else:
     if st.session_state.submitted:
         st.session_state.submitted = False
         display_submitted_dialog()
+    
     st.markdown(f"You are viewing as: **{st.session_state.username}**")
 
     # Get future matches
