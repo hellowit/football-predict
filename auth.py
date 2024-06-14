@@ -55,6 +55,7 @@ base_points = {
 #     "I can see the future!": 1,
 # }
 
+
 def get_bar_color(extra_points):
     bar_color = {
         "extra_points_mult_2": "rgb(170, 211, 82)",
@@ -272,6 +273,11 @@ def get_matches():
         ],
     ]
 
+    # Test remove this!
+    # matches.loc[:, "home_goals"] = matches.loc[:, "home_goals"].fillna(0)
+    # matches.loc[:, "away_goals"] = matches.loc[:, "home_goals"].fillna(0)
+    # matches.loc[:, "goals_difference"] = matches.loc[:, "goals_difference"].fillna(0)
+
     return matches
 
 
@@ -323,8 +329,6 @@ def get_predictions():
             "goals_difference",
         ],
     ]
-
-    matches.loc[:, "goals_difference"] = matches.loc[:, "goals_difference"].fillna(0)
 
     # Merge predictions with matches
     valid_predictions = predictions.merge(
