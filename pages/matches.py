@@ -6,6 +6,22 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 
+import time
+
+
+def time_to_match(until_datetime, now=None):
+    if now is None:
+        now = auth.get_datetime_now()
+    ttm = until_datetime - now
+    if ttm > dt.timedelta(seconds=0):
+        days = ttm.days
+        hours = ttm.seconds // 3600
+        minutes = (ttm.seconds // 60) % 60
+        # seconds = ttm.seconds - hours * 3600 - minutes * 60
+        ttm_text = f"""{ttm.days} Days {hours} Hours {minutes} Minutes"""
+        return ttm_text
+
+
 # Page config
 auth.set_page_config()
 
@@ -72,13 +88,15 @@ else:
                     unsubmitted_users_matches["match"] == match.loc["match"],
                     "username",
                 ].to_list()
+                st.write(f"""Match Begins in {time_to_match(match.loc["datetime"])}""")
                 if len(unsubmitted_users) > 0:
                     st.caption(f"""Unsubmitted users: {", ".join(unsubmitted_users)}""")
+
     with tab1:
         for i in range(matches.shape[0]):
             match = matches.loc[matches.index[i], :]
             with st.container(border=True):
-                st.markdown(match.loc["match"])
+                st.caption(match.loc["match"])
                 # Write teams
                 st.markdown(
                     f"""##### {match.loc["home_team"]} - {match.loc["away_team"]}"""
@@ -95,5 +113,6 @@ else:
                     unsubmitted_users_matches["match"] == match.loc["match"],
                     "username",
                 ].to_list()
+                st.write(f"""Match Begins in {time_to_match(match.loc["datetime"])}""")
                 if len(unsubmitted_users) > 0:
                     st.caption(f"""Unsubmitted users: {", ".join(unsubmitted_users)}""")

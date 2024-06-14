@@ -143,10 +143,17 @@ else:
 
             auth.display_vertical_spaces(1)
             # Goals difference input
-            prediction = st.slider(
+            # prediction = st.slider(
+            #     "Prediction (Goals Difference):",
+            #     min_value=-7,
+            #     max_value=7,
+            #     # value=0,
+            #     value=displayed_values["prediction"],
+            #     key="input_prediction",
+            # )
+            prediction = st.select_slider(
                 "Prediction (Goals Difference):",
-                min_value=-7,
-                max_value=7,
+                options=[i for i in range(7, -8, -1)],
                 # value=0,
                 value=displayed_values["prediction"],
                 key="input_prediction",
