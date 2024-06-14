@@ -210,16 +210,12 @@ def get_matches_from_wikipedia():
     )
     # Convert score string, e.g., 0-2, to number of goals
     matches.loc[:, "home_goals"] = matches.loc[:, "score"].apply(
-        lambda x: np.nan if x.find("-") == -1 else x[x.find("-") :]
+        lambda x: np.nan if x.find("–") == -1 else x[: x.find("–")]
     )
     matches.loc[:, "away_goals"] = matches.loc[:, "score"].apply(
-        lambda x: np.nan if x.find("-") == -1 else x[: x.find("-") - 1]
+        lambda x: np.nan if x.find("–") == -1 else x[x.find("–") + 1 :]
     )
-    # Create goals difference
-    matches.loc[:, "goals_difference"] = (
-        matches.loc[:, "home_goals"] - matches.loc[:, "away_goals"]
-    )
-    # Convert datetime to Bangkok timezone, and goals to number
+    # Convert columns types
     matches = matches.astype(
         {
             "datetime": "datetime64[ns, Asia/Bangkok]",
@@ -227,6 +223,11 @@ def get_matches_from_wikipedia():
             "away_goals": "float64",
         }
     )
+    # Create goals difference
+    matches.loc[:, "goals_difference"] = (
+        matches.loc[:, "home_goals"] - matches.loc[:, "away_goals"]
+    )
+    # Convert datetime to Bangkok timezone, and goals to number
     # Create match number
     matches.loc[:, "match_number"] = matches.index + 1
     # Create match name

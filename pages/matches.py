@@ -88,7 +88,6 @@ else:
     unsubmitted_users_matches = users_matches.loc[
         users_matches["timestamp"].isnull(), :
     ]
-
     # Create tabs
     tab0, tab1 = st.tabs(["Recent", "All"])
     tab_list = [tab0, tab1]
