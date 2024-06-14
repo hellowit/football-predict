@@ -135,8 +135,7 @@ else:
                         st.caption(f"""Unsubmitted: {", ".join(unsubmitted_users)}""")
 
                     # Display histogram
-                    # with st.expander("Statistics"):
-                    with st.popover("More", use_container_width=True):
+                    with st.expander("Statistics"):
                         st.plotly_chart(
                             auth.get_match_histogram(
                                 match.loc["match"],
