@@ -234,7 +234,7 @@ else:
                 rewarded_points = auth.get_total_points(extra_points)
 
                 # Explain about the extra points items
-                if extra_points == "extra_points_mult_2":
+                if extra_points == "extra_points_mult_3":
                     st.markdown(
                         f"""You also use **{auth.extra_points_items[extra_points]["name"]}**, which will multiply your rewarded points by the factor of 2."""
                     )
