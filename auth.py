@@ -259,7 +259,7 @@ def get_future_matches(n):
     return future_matches
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=300)
 def get_matches():
     # Get matches from Wikipedia
     matches = get_matches_from_wikipedia()
@@ -309,7 +309,7 @@ def add_firestore_documents(collection, document_data, id=None, merge=True):
     return True
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=300)
 def get_predictions():
     # Get predictions
     predictions = get_firestore_documents(collection="predictions")
@@ -391,7 +391,7 @@ def get_predictions():
 #     return True
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=300)
 def get_users():
     users = get_firestore_documents(collection="users")
     return users
