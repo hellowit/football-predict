@@ -44,7 +44,7 @@ else:
     col2.metric("% Accuracy", "99%", "-8%")
 
     # Create tabs
-    tab0, tab1 = st.tabs(["Scoreboard", "Accuracy"])
+    (tab0,) = st.tabs(["Scoreboard"])
     with tab0:
         # Get matches
         matches = auth.get_matches()
