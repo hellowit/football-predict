@@ -158,6 +158,12 @@ else:
                 value=displayed_values["prediction"],
                 key="input_prediction",
             )
+            if prediction > 0:
+                st.caption(f"""Definition: {home_team} will win by {prediction} goals.""")
+            elif prediction < 0:
+                st.caption(f"""Definition: {away_team} will win by {prediction*-1} goals.""")
+            else:
+                st.caption(f"""Definition: This match will be a tie.""")
 
             # Join usage limits with usage counts
             extra_points_usage_limits = (
