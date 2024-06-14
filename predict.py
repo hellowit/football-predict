@@ -140,7 +140,6 @@ else:
                 f"""##### {home_team} vs {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
             )
 
-            auth.display_vertical_spaces(1)
             # Goals difference input
             # prediction = st.slider(
             #     "Prediction (Goals Difference):",
@@ -183,10 +182,8 @@ else:
                 :, "available"
             ].to_dict()
 
-            auth.display_vertical_spaces(1)
             extra_points = {}
             auth.display_checkbox_group("Extra Points:")
-            auth.display_vertical_spaces(1)
             with st.container(border=True):
                 # Iterate over extra points items
                 for k, _ in auth.extra_points_items.items():
@@ -214,7 +211,6 @@ else:
             ]
             extra_points = None if extra_points == [] else extra_points[0]
 
-            # auth.display_vertical_spaces(1)
             # Confidence level input
             # confidence_level = st.select_slider(
             #     "Confidence Level:",
@@ -229,7 +225,6 @@ else:
             #     help="This does not impact the score calculation, but may be displayed to others just for fun.",
             # )
 
-            auth.display_vertical_spaces(1)
             with st.expander("What does your prediction mean?", expanded=False):
                 # Explain about the prediction number
                 st.markdown(f"""Your prediction is **{prediction}**.""")
@@ -274,7 +269,6 @@ else:
                 )
                 auth.display_vertical_spaces(1)
 
-            auth.display_vertical_spaces(1)
             if st.button(
                 "Submit",
                 type="primary",
