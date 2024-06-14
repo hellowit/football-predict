@@ -12,12 +12,12 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
-# Extra points config
+# Extra points items config
 extra_points_items = {
     "extra_points_mult_3": {
         "name": "Points x3",
         "operator": "mult",
-        "rewards": {
+        "rewarded_points": {
             "Correct": 3,
             "Correct - Tied": 3,
             "Partial Correct": 3,
@@ -28,7 +28,7 @@ extra_points_items = {
     "extra_points_add_10": {
         "name": "Points +10 (-10 Penalty)",
         "operator": "add",
-        "rewards": {
+        "rewarded_points": {
             "Correct": 10,
             "Correct - Tied": 10,
             "Partial Correct": 10,
@@ -64,37 +64,59 @@ bar_color = {
 }
 
 
-def get_rewarded_points(extra_points, base_points=base_points):
+def get_total_points(extra_points, base_points=base_points):
+    # Return base rewarded points if, no extra points item used
+    total_points = base_points
     if extra_points is not None:
-        # Combine base rewarded points with extra points factor
-        adjusted_rewarded_points = pd.DataFrame(
-            {
-                "base": base_points,
-                "factor": extra_points_items[extra_points]["rewards"],
-            }
-        )
-        # Get operator
-        operator = extra_points_items[extra_points]["operator"]
-        # Calculate new rewarded points, based on operator
-        if operator == "mult":
-            adjusted_rewarded_points.loc[:, "rewarded_points"] = (
-                adjusted_rewarded_points.loc[:, "base"]
-                * adjusted_rewarded_points.loc[:, "factor"]
+        if extra_points_items.get(extra_points) is not None:
+            # Combine base rewarded points with extra points factor
+            total_points = pd.DataFrame(
+                {
+                    "base": base_points,
+                    "factor": extra_points_items[extra_points]["rewarded_points"],
+                }
             )
-        elif operator == "add":
-            adjusted_rewarded_points.loc[:, "rewarded_points"] = (
-                adjusted_rewarded_points.loc[:, "base"]
-                + adjusted_rewarded_points.loc[:, "factor"]
-            )
-        # Convert rewarded points to dict
-        adjusted_rewarded_points = adjusted_rewarded_points.loc[
-            :, "rewarded_points"
-        ].to_dict()
-    else:
-        # Return base rewarded points if, no extra points item used
-        adjusted_rewarded_points = base_points
+            # Get operator
+            operator = extra_points_items[extra_points]["operator"]
+            # Calculate new rewarded points, based on operator
+            if operator == "mult":
+                total_points.loc[:, "rewarded_points"] = (
+                    total_points.loc[:, "base"] * total_points.loc[:, "factor"]
+                )
+            elif operator == "add":
+                total_points.loc[:, "rewarded_points"] = (
+                    total_points.loc[:, "base"] + total_points.loc[:, "factor"]
+                )
+            # Convert rewarded points to dict
+            total_points = total_points.loc[:, "rewarded_points"]
 
-    return adjusted_rewarded_points
+    return total_points
+
+
+def get_outcome(prediction, goals_difference):
+    if np.isnan(goals_difference):
+        outcome = "Not Concluded"
+    elif (prediction == 0) & (goals_difference == 0):
+        outcome = "Correct - Tied"
+    elif prediction == goals_difference:
+        outcome = "Correct"
+    elif (prediction > 0) & (goals_difference > 0):
+        outcome = "Partial Correct"
+    elif (prediction < 0) & (goals_difference < 0):
+        outcome = "Partial Correct"
+    else:
+        outcome = "Totally Wrong"
+    return outcome
+
+
+def get_rewarded_points(outcome, extra_points):
+    if outcome is None:
+        rewarded_points = np.nan
+    elif outcome == "Not Concluded":
+        rewarded_points = np.nan
+    else:
+        rewarded_points = get_total_points(extra_points)[outcome]
+    return rewarded_points
 
 
 def set_page_config():
@@ -198,7 +220,7 @@ def get_matches_from_wikipedia():
     matches.loc[:, "match_number"] = matches.index + 1
     # Create match name
     matches.loc[:, "match"] = (
-        matches.loc[:, "match_number"].apply(lambda x: "{:02d}".format(x))
+        matches.loc[:, "match_number"].apply(lambda x: f"{x:02d}")
         + " "
         + matches.loc[:, "home_team"]
         + " - "
@@ -226,7 +248,7 @@ def get_future_matches(n):
     return future_matches
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=3600)
 def get_matches():
     # Get matches from Wikipedia
     matches = get_matches_from_wikipedia()
@@ -271,7 +293,7 @@ def add_firestore_documents(collection, document_data, id=None, merge=True):
     return True
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=3600)
 def get_predictions():
     # Get predictions
     predictions = get_firestore_documents(collection="predictions")
@@ -285,7 +307,20 @@ def get_predictions():
     # Get matches
     matches = get_matches()
     # Drop other columns
-    matches = matches.loc[:, ["datetime", "match", "goals_difference"]]
+    matches = matches.loc[
+        :,
+        [
+            "datetime",
+            "match",
+            "home_team",
+            "away_team",
+            "home_goals",
+            "away_goals",
+            "goals_difference",
+        ],
+    ]
+
+    matches.loc[:, "goals_difference"] = matches.loc[:, "goals_difference"].fillna(0)
 
     # Merge predictions with matches
     valid_predictions = predictions.merge(
@@ -294,6 +329,7 @@ def get_predictions():
         left_on="match",
         right_on="match",
     )
+
     # Drop predictions, if submitted after the match is started
     valid_predictions = valid_predictions.loc[
         valid_predictions["timestamp"] <= valid_predictions["datetime"], :
@@ -304,10 +340,23 @@ def get_predictions():
         "timestamp"
     ].rank(ascending=False)
 
+    valid_predictions.loc[:, "outcome"] = valid_predictions.apply(
+        lambda x: get_outcome(x["prediction"], x["goals_difference"]),
+        axis=1,
+    )
+
+    valid_predictions.loc[:, "rewarded_points"] = valid_predictions.apply(
+        lambda x: get_rewarded_points(x["outcome"], x["extra_points"]),
+        axis=1,
+    )
+
     # Sort columns by name
     valid_predictions = valid_predictions.reindex(
         sorted(valid_predictions.columns), axis=1
     )
+
+    # Drop datetime column
+    # valid_predictions = valid_predictions.drop(columns="datetime")
 
     return valid_predictions
 
@@ -328,7 +377,7 @@ def get_predictions():
 #     return True
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=3600)
 def get_users():
     users = get_firestore_documents(collection="users")
     return users
@@ -384,6 +433,8 @@ def display_user_login():
                 index=None,
                 key="input_username",
             )
+
+            st.text_input("Pin:", max_chars=6)
 
             # SecurityKey checkboxes
             input_securitykey = {}

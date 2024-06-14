@@ -11,13 +11,13 @@ import plotly.graph_objects as go
 import time
 
 
-def reset_inputs():
-    st.session_state.input_prediction = 0
-    st.session_state.input_confidence_level = [
-        k for k, v in auth.confidence_levels.items() if v == 0.5
-    ][0]
-    manage_extra_points_inputs([""])
-    st.session_state.reset_inputs = False
+# def reset_inputs():
+#     st.session_state.input_prediction = 0
+#     st.session_state.input_confidence_level = [
+#         k for k, v in auth.confidence_levels.items() if v == 0.5
+#     ][0]
+#     manage_extra_points_inputs([""])
+#     st.session_state.reset_inputs = False
 
 
 def manage_extra_points_inputs(key):
@@ -67,11 +67,11 @@ auth.set_page_config()
 if "initial" not in st.session_state:
     st.session_state.initial = True
 
-if "reset_inputs" not in st.session_state:
-    st.session_state.reset_inputs = False
+# if "reset_inputs" not in st.session_state:
+#     st.session_state.reset_inputs = False
 
-if st.session_state.reset_inputs:
-    reset_inputs()
+# if st.session_state.reset_inputs:
+#     reset_inputs()
 
 if "submitted" not in st.session_state:
     st.session_state.submitted = False
@@ -82,7 +82,7 @@ else:
     if st.session_state.initial:
         st.session_state.initial = False
         display_unsubmitted_matches()
-        reset_inputs()
+        # reset_inputs()
     # Display submitted dialog
     if st.session_state.submitted:
         st.session_state.submitted = False
@@ -101,7 +101,7 @@ else:
             options=future_matches.loc[:, "match"],
             index=0,
             key="input_match",
-            on_change=reset_inputs,
+            # on_change=reset_inputs,
         )
         # Get teams
         home_team = future_matches.loc[
@@ -118,11 +118,28 @@ else:
         user_predictions = predictions.loc[
             predictions["username"] == st.session_state.username, :
         ]
+        # Get the latest submitted prediction
+        try:
+            displayed_values = (
+                user_predictions.loc[user_predictions["match"] == match, :]
+                .iloc[0, :]
+                .to_dict()
+            )
+        except:
+            # Default values, if latest prediction is not available
+            displayed_values = {
+                "prediction": 0,
+                "extra_points": None,
+                "confidence_level": 0.5,
+            }
+
         # Create tabs
         tab0, tab1 = st.tabs(["New Prediction", "Statistics"])
         with tab0:
             st.markdown(f"You are predicting:")
-            st.markdown(f"##### {home_team} vs {away_team}")
+            st.markdown(
+                f"""##### {home_team} vs {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
+            )
 
             auth.display_vertical_spaces(1)
             # Goals difference input
@@ -131,6 +148,7 @@ else:
                 min_value=-7,
                 max_value=7,
                 # value=0,
+                value=displayed_values["prediction"],
                 key="input_prediction",
             )
 
@@ -159,13 +177,19 @@ else:
                     extra_points[k] = st.toggle(
                         auth.extra_points_items[k]["name"],
                         # value=False,
+                        value=True if displayed_values["extra_points"] == k else False,
                         key=f"input_{k}",
                         on_change=manage_extra_points_inputs,
                         args=(f"input_{k}",),
-                        disabled=True if extra_points_availabilities[k] == 0 else False,
+                        disabled=(
+                            True
+                            if (extra_points_availabilities[k] == 0)
+                            and (displayed_values["extra_points"] != k)
+                            else False
+                        ),
                     )
                     st.caption(
-                        f"""You have {"{:.0f}".format(extra_points_availabilities[k])} left"""
+                        f"""You have {extra_points_availabilities[k]:.0f} left"""
                     )
 
             # Specify which extra points item is used
@@ -180,6 +204,11 @@ else:
                 "Confidence Level:",
                 options=[k for k, v in auth.confidence_levels.items()],
                 # value=[k for k, v in auth.confidence_levels.items() if v == 0.5][0],
+                value=[
+                    k
+                    for k, v in auth.confidence_levels.items()
+                    if v == displayed_values["confidence_level"]
+                ][0],
                 key="input_confidence_level",
                 help="This does not impact the score calculation, but may be displayed to others just for fun.",
             )
@@ -202,7 +231,7 @@ else:
                     )
 
                 # Get rewarded points
-                rewarded_points = auth.get_rewarded_points(extra_points)
+                rewarded_points = auth.get_total_points(extra_points)
 
                 # Explain about the extra points items
                 if extra_points == "extra_points_mult_2":
@@ -250,7 +279,7 @@ else:
                         document_data=temp_prediction,
                     ):
                         # Force reset inputs on next rerun
-                        st.session_state.reset_inputs = True
+                        # st.session_state.reset_inputs = True
                         # Force display submitted dialog on next rerun
                         st.session_state.submitted = True
                         # Force clear function cache
