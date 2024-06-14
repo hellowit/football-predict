@@ -38,10 +38,10 @@ else:
     st.write(f"You are viewing as: **{st.session_state.username}**")
 
     # Metrics
-    col0, col1, col2 = st.columns(3)
-    col0.metric("Rank", "2", "1")
-    col1.metric("Total Score", "35", "3")
-    col2.metric("% Accuracy", "99%", "-8%")
+    # col0, col1, col2 = st.columns(3)
+    # col0.metric("Rank", "2", "1")
+    # col1.metric("Total Score", "35", "3")
+    # col2.metric("% Accuracy", "99%", "-8%")
 
     # Create tabs
     (tab0,) = st.tabs(["Scoreboard"])

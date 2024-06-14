@@ -47,21 +47,25 @@ base_points = {
 }
 
 # Confidence levels config
-confidence_levels = {
-    "I'm always wrong": 0,
-    "I have a bad feeling about this": 0.25,
-    "50:50": 0.5,
-    "Trust me, I'm an analyst": 0.75,
-    "I can see the future!": 1,
-}
+# confidence_levels = {
+#     "I'm always wrong": 0,
+#     "I have a bad feeling about this": 0.25,
+#     "50:50": 0.5,
+#     "Trust me, I'm an analyst": 0.75,
+#     "I can see the future!": 1,
+# }
 
-bar_color = {
-    "I'm always wrong": "rgb(235, 137, 95)",
-    "I have a bad feeling about this": "rgb(245, 196, 175)",
-    "50:50": "rgb(150, 150, 150)",
-    "Trust me, I'm an analyst": "rgb(170, 211, 82)",
-    "I can see the future!": "rgb(99, 110, 250)",
-}
+def get_bar_color(extra_points):
+    bar_color = {
+        "extra_points_mult_2": "rgb(170, 211, 82)",
+        "extra_points_mult_3": "rgb(170, 211, 82)",
+        "extra_points_add_10": "rgb(99, 110, 250)",
+    }
+    if extra_points is None:
+        color = "rgb(150, 150, 150)"
+    else:
+        color = bar_color.get(extra_points)
+    return color
 
 
 def get_total_points(extra_points, base_points=base_points):
@@ -300,9 +304,9 @@ def get_predictions():
     # Convert datetime to local timezone
     predictions = predictions.astype({"timestamp": "datetime64[ns, Asia/Bangkok]"})
     # Create a confidence level definition column
-    predictions.loc[:, "confidence_level_text"] = predictions.loc[
-        :, "confidence_level"
-    ].map({v: k for k, v in confidence_levels.items()})
+    # predictions.loc[:, "confidence_level_text"] = predictions.loc[
+    #     :, "confidence_level"
+    # ].map({v: k for k, v in confidence_levels.items()})
 
     # Get matches
     matches = get_matches()
