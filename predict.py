@@ -142,14 +142,6 @@ else:
             )
 
             # Goals difference input
-            # prediction = st.slider(
-            #     "Prediction (Goals Difference):",
-            #     min_value=-7,
-            #     max_value=7,
-            #     # value=0,
-            #     value=displayed_values["prediction"],
-            #     key="input_prediction",
-            # )
             prediction = st.select_slider(
                 "Prediction (Goals Difference):",
                 options=[i for i in range(7, -8, -1)],
@@ -157,6 +149,7 @@ else:
                 value=displayed_values["prediction"],
                 key="input_prediction",
             )
+            # Prediction definition
             if prediction > 0:
                 st.caption(
                     f"""Definition: {home_team} will win by {prediction} goals."""
@@ -313,76 +306,10 @@ else:
             )
             # Filter predictions for current match
             match_predictions = predictions.loc[predictions["match"] == match, :]
+            # Set index to username
             match_predictions = match_predictions.set_index("username")
 
-            # df = (
-            #     match_predictions.loc[:, ["prediction"]]
-            #     .value_counts()
-            #     .rename("count")
-            #     .reset_index()
-            # )
-            # # Create plotly plot
-            # fig = go.Figure()
-            # # Force display category
-            # fig.add_trace(
-            #     go.Bar(
-            #         x=[i for i in range(-7, 8, 1)],
-            #         y=[0 for _ in range(-7, 8, 1)],
-            #         showlegend=False,
-            #     ),
-            # )
-            # # Iterate each user's prediction
-            # for confidence_level_text in df.loc[
-            #     :, "confidence_level_text"
-            # ].drop_duplicates():
-            #     fig.add_trace(
-            #         go.Bar(
-            #             x=df.loc[
-            #                 df["confidence_level_text"] == confidence_level_text,
-            #                 "prediction",
-            #             ],
-            #             y=df.loc[
-            #                 df["confidence_level_text"] == confidence_level_text,
-            #                 "count",
-            #             ],
-            #             name=confidence_level_text,
-            #             marker_color=auth.bar_color[confidence_level_text],
-            #         ),
-            #     )
-            # fig.update_layout(
-            #     barmode="stack",
-            #     hoverlabel=dict(
-            #         font_size=14,
-            #     ),
-            #     showlegend=True,
-            #     legend=dict(
-            #         orientation="h",
-            #         # entrywidth=70,
-            #         yanchor="bottom",
-            #         y=1.02,
-            #         xanchor="right",
-            #         x=1,
-            #     ),
-            # )
-            # fig.update_yaxes(
-            #     title_text="Number of Predictions",
-            #     title_font=dict(size=12, color="rgb(150, 150, 150)"),
-            #     dtick=1,
-            # )
-            # fig.update_xaxes(
-            #     # showgrid=True,
-            #     ticks="outside",
-            #     tickson="boundaries",
-            #     ticklen=15,
-            #     title_text="Prediction (Goals Difference)",
-            #     title_font=dict(size=12, color="rgb(150, 150, 150)"),
-            #     tickmode="array",
-            #     tickvals=[i for i in range(-7, 8, 1)],
-            #     type="category",
-            #     griddash="solid",
-            # )
-            # st.plotly_chart(fig)
-
+            # Plotly plot
             fig = go.Figure()
             # Force display category
             fig.add_trace(
@@ -394,22 +321,47 @@ else:
             )
             # Iterate each user's prediction
             for i in range(match_predictions.shape[0]):
-                row_index = match_predictions.index[i]
-                extra_points = match_predictions.loc[row_index, "extra_points"]
+                username = match_predictions.index[i]
+                extra_points = match_predictions.loc[username, "extra_points"]
+                # Plot differently, if it's user's prediction
+                if username == st.session_state.username:
+                    my_prediction = True
+                else:
+                    my_prediction = False
+                # Show all, for when match has already begun
+                show_all = False
                 fig.add_trace(
                     go.Bar(
-                        x=[match_predictions.loc[row_index, "prediction"]],
+                        x=[match_predictions.loc[username, "prediction"]],
                         y=[1],
-                        # name=row_index,
+                        name=username if my_prediction | show_all else "Undisclosed",
                         # legendgroup=extra_points,
                         # legendgrouptitle_text=extra_points,
                         # marker_color=auth.get_bar_color(extra_points)
-                        showlegend=False,
-                        marker_color="rgb(99, 110, 250)",
+                        showlegend=True if my_prediction else False,
+                        text=(
+                            auth.extra_points_items[extra_points]["abbr"]
+                            if (my_prediction | show_all) and (extra_points is not None)
+                            else "-"
+                        ),
+                        texttemplate="%{text}",
+                        marker_color=(
+                            "rgb(255, 100, 100)"
+                            if my_prediction
+                            else "rgb(99, 110, 250)"
+                        ),
                     ),
                 )
             fig.update_layout(
                 barmode="stack",
+                showlegend=True,
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1,
+                ),
             )
             fig.update_yaxes(
                 title_text="Number of Predictions",

@@ -1,4 +1,5 @@
 import streamlit as st
+
 # from streamlit_gsheets import GSheetsConnection
 
 import numpy as np
@@ -16,6 +17,7 @@ from bs4 import BeautifulSoup
 extra_points_items = {
     "extra_points_mult_3": {
         "name": "Points x3",
+        "abbr": "x3",
         "operator": "mult",
         "rewarded_points": {
             "Correct": 3,
@@ -27,6 +29,7 @@ extra_points_items = {
     },
     "extra_points_add_10": {
         "name": "Points +10 (-10 Penalty)",
+        "abbr": "+10",
         "operator": "add",
         "rewarded_points": {
             "Correct": 10,
