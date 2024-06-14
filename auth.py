@@ -134,6 +134,7 @@ def set_page_config():
     st.set_page_config(
         page_title="football-predict",
         page_icon="⚽",
+        layout="wide",
         # initial_sidebar_state="expanded",
     )
     with st.sidebar:
@@ -655,8 +656,8 @@ def get_match_histogram(match, username, show_all=False):
         height=380,
     )
     fig.update_yaxes(
-        title_text="Number of Predictions",
-        title_font=dict(size=12, color="rgb(150, 150, 150)"),
+        # title_text="Number of Predictions",
+        # title_font=dict(size=12, color="rgb(150, 150, 150)"),
         dtick=1,
         tickfont_size=14,
         fixedrange=True,
