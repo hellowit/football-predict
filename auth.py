@@ -481,9 +481,7 @@ def display_user_login():
             # SecurityKey checkboxes
             reg_securitykey = {}
             display_checkbox_group("SecurityKey:")
-            st.caption(
-                "Choose at least 3 items. Please do not forget your SecurityKey!"
-            )
+            st.caption("Choose at least 3 items.")
             for key in securitykey_list:
                 reg_securitykey[key] = st.checkbox(
                     key,
