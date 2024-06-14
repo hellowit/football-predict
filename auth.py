@@ -472,12 +472,42 @@ def display_user_login():
                                 users["username"] == input_username, "password"
                             ].iloc[0]
                         ):
+                            # Add log
+                            add_firestore_documents(
+                                collection="logs",
+                                document_data={
+                                    "timestamp": get_datetime_now(),
+                                    "username": input_username,
+                                    "action": "login",
+                                    "status": "completed",
+                                },
+                            )
                             st.session_state.username = input_username
                             st.rerun()
                         else:
                             st.error("Invalid SecurityKey!")
+                            # Add log
+                            add_firestore_documents(
+                                collection="logs",
+                                document_data={
+                                    "timestamp": get_datetime_now(),
+                                    "username": input_username,
+                                    "action": "login",
+                                    "status": "invalid securitykey",
+                                },
+                            )
                     else:
                         st.error("Invalid Username")
+                        # Add log
+                        add_firestore_documents(
+                            collection="logs",
+                            document_data={
+                                "timestamp": get_datetime_now(),
+                                "username": input_username,
+                                "action": "login",
+                                "status": "invalid username",
+                            },
+                        )
     with tab1:
         with st.form(key="register"):
             # Username
@@ -533,6 +563,16 @@ def display_user_login():
                                 st.session_state.username = reg_username
                                 # Force clear function cache
                                 get_users.clear()
+                                # Add log
+                                add_firestore_documents(
+                                    collection="logs",
+                                    document_data={
+                                        "timestamp": get_datetime_now(),
+                                        "username": reg_username,
+                                        "action": "register",
+                                        "status": "completed",
+                                    },
+                                )
                                 st.rerun()
 
                     else:

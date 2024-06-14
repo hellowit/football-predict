@@ -294,6 +294,16 @@ else:
                         st.session_state.submitted = True
                         # Force clear function cache
                         auth.get_predictions.clear()
+                        # Add log
+                        auth.add_firestore_documents(
+                            collection="logs",
+                            document_data={
+                                "timestamp": auth.get_datetime_now(),
+                                "username": st.session_state.username,
+                                "action": "submit",
+                                "status": "completed",
+                            },
+                        )
                         st.rerun()
         with tab1:
             st.markdown(f"You are viewing:")
