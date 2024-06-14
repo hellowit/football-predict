@@ -434,22 +434,14 @@ def display_user_login():
                 key="input_username",
             )
 
-            input_password = st.text_input(
-                "Password:",
-                value=None,
-                key="input_password",
-                max_chars=20,
-                autocomplete="password",
-            )
-
             # SecurityKey checkboxes
-            # input_securitykey = {}
-            # display_checkbox_group("SecurityKey:")
-            # for key in securitykey_list:
-            #     input_securitykey[key] = st.checkbox(
-            #         key,
-            #         key=f"securitykey_{key}",
-            #     )
+            input_securitykey = {}
+            display_checkbox_group("SecurityKey:")
+            for key in securitykey_list:
+                input_securitykey[key] = st.checkbox(
+                    key,
+                    key=f"securitykey_{key}",
+                )
             # Login button
             if st.form_submit_button(
                 "Login",
@@ -458,17 +450,16 @@ def display_user_login():
                 with st.spinner("Processing..."):
                     if input_username is not None:
                         # Join SecurityKey
-                        # temp_securitykey = ", ".join(
-                        #     [
-                        #         k[: k.find(" ")]
-                        #         for k, v in input_securitykey.items()
-                        #         if v
-                        #     ]
-                        # )
+                        temp_securitykey = ", ".join(
+                            [
+                                k[: k.find(" ")]
+                                for k, v in input_securitykey.items()
+                                if v
+                            ]
+                        )
                         # Validate password
                         if (
-                            # temp_securitykey
-                            input_password
+                            temp_securitykey
                             == users.loc[
                                 users["username"] == input_username, "password"
                             ].iloc[0]
@@ -487,26 +478,17 @@ def display_user_login():
                 max_chars=20,
                 key="reg_username",
             )
-
-            reg_password = st.text_input(
-                "Password:",
-                value=None,
-                key="reg_password",
-                max_chars=20,
-                autocomplete="password",
-            )
-
             # SecurityKey checkboxes
-            # reg_securitykey = {}
-            # display_checkbox_group("SecurityKey:")
-            # st.caption(
-            #     "Choose at least 3 items. Please do not forget your SecurityKey!"
-            # )
-            # for key in securitykey_list:
-            #     reg_securitykey[key] = st.checkbox(
-            #         key,
-            #         key=f"reg_securitykey_{key}",
-            #     )
+            reg_securitykey = {}
+            display_checkbox_group("SecurityKey:")
+            st.caption(
+                "Choose at least 3 items. Please do not forget your SecurityKey!"
+            )
+            for key in securitykey_list:
+                reg_securitykey[key] = st.checkbox(
+                    key,
+                    key=f"reg_securitykey_{key}",
+                )
 
             # Register button
             if st.form_submit_button(
@@ -515,11 +497,10 @@ def display_user_login():
             ):
                 with st.spinner("Processing..."):
                     # Join SecurityKey
-                    # temp_securitykey = ", ".join(
-                    #     [k[: k.find(" ")] for k, v in reg_securitykey.items() if v]
-                    # )
-                    # if len(reg_username) >= 2 and temp_securitykey != "":
-                    if len(reg_username) >= 2 and reg_password != "":
+                    temp_securitykey = ", ".join(
+                        [k[: k.find(" ")] for k, v in reg_securitykey.items() if v]
+                    )
+                    if len(reg_username) >= 2 and temp_securitykey != "":
                         # Get users
                         users = get_users()
                         # Check if username is already taken
@@ -529,8 +510,7 @@ def display_user_login():
                             # Create user dict
                             temp_user = {
                                 "username": reg_username,
-                                # "password": temp_securitykey,
-                                "password": reg_password,
+                                "password": temp_securitykey,
                             }
                             # Add user to database
                             if add_firestore_documents(
