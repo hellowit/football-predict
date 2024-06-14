@@ -7,6 +7,8 @@ import pandas as pd
 import datetime as dt
 import time
 
+import plotly.graph_objects as go
+
 from google.cloud import firestore
 import json
 
@@ -580,3 +582,99 @@ def display_user_login():
 
                     else:
                         st.error("Username must be 2 characters or more!")
+
+
+def get_match_histogram(match, username, show_all=False):
+    # Get predictions
+    predictions = get_predictions()
+    # Filter latest
+    predictions = predictions.loc[predictions["rank"] == 1, :]
+    # Filter predictions for current match
+    match_predictions = predictions.loc[predictions["match"] == match, :]
+    # Set index to username
+    match_predictions = match_predictions.set_index("username")
+
+    # Plotly plot
+    fig = go.Figure()
+    # Force display category
+    fig.add_trace(
+        go.Bar(
+            x=[i for i in range(-7, 8, 1)],
+            y=[0 for _ in range(-7, 8, 1)],
+            showlegend=False,
+        ),
+    )
+
+    # Iterate each user's prediction
+    for i in range(match_predictions.shape[0]):
+        username = match_predictions.index[i]
+        extra_points = match_predictions.loc[username, "extra_points"]
+        # Plot differently, if it's user's prediction
+        if username == st.session_state.username:
+            my_prediction = True
+        else:
+            my_prediction = False
+        fig.add_trace(
+            go.Bar(
+                x=[match_predictions.loc[username, "prediction"]],
+                y=[1],
+                name=username if my_prediction | show_all else "Undisclosed",
+                # legendgroup=extra_points,
+                # legendgrouptitle_text=extra_points,
+                # marker_color=auth.get_bar_color(extra_points)
+                # showlegend=True if my_prediction else False,
+                showlegend=False,
+                text=(
+                    extra_points_items[extra_points]["abbr"]
+                    if (my_prediction | show_all) and (extra_points is not None)
+                    else "."
+                ),
+                texttemplate="%{text}",
+                textfont_size=14,
+                hovertemplate="%{x}",
+                marker_color=(
+                    "rgb(230, 70, 70)" if my_prediction else "rgb(99, 110, 250)"
+                ),
+            ),
+        )
+
+    fig.update_layout(
+        barmode="stack",
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+        ),
+        margin=dict(
+            t=20,
+            b=60,
+        ),
+        height=380,
+    )
+    fig.update_yaxes(
+        title_text="Number of Predictions",
+        title_font=dict(size=12, color="rgb(150, 150, 150)"),
+        dtick=1,
+        tickfont_size=14,
+        fixedrange=True,
+    )
+    fig.update_xaxes(
+        title_text="Prediction (Goals Difference)",
+        title_font=dict(size=12, color="rgb(150, 150, 150)"),
+        ticks="outside",
+        tickson="boundaries",
+        ticklen=15,
+        tickmode="array",
+        tickvals=[i for i in range(-7, 8, 1)],
+        tickfont_size=14,
+        type="category",
+        griddash="solid",
+        fixedrange=True,
+        autorange="reversed",
+        tickangle=0,
+    )
+
+    return fig

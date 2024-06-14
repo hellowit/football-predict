@@ -18,8 +18,29 @@ def time_to_match(until_datetime, now=None):
         hours = ttm.seconds // 3600
         minutes = (ttm.seconds // 60) % 60
         # seconds = ttm.seconds - hours * 3600 - minutes * 60
-        ttm_text = f"""{ttm.days} Days {hours} Hours {minutes} Minutes"""
+        ttm_text = f"""**{ttm.days}** days **{hours}** hours **{minutes}** minutes"""
         return ttm_text
+
+
+def filter_predictions(username=None, rank=None, match=None):
+    # Get predictions
+    predictions = auth.get_predictions()
+    # Filter username
+    if username is not None:
+        if type(username) is not list:
+            username = [username]
+        predictions = predictions.loc[predictions["username"].isin(username), :]
+    # Filter rank
+    if rank is not None:
+        if type(rank) is not list:
+            rank = [rank]
+        predictions = predictions.loc[predictions["rank"].isin(rank), :]
+    # Filter matches
+    if match is not None:
+        if type(match) is not list:
+            match = [match]
+        predictions = predictions.loc[predictions["match"].isin(match), :]
+    return predictions
 
 
 # Page config
@@ -34,7 +55,6 @@ else:
     st.caption(
         "Match numbers are based on the order of appearance in the Wikipedia page."
     )
-    tab0, tab1 = st.tabs(["Recent", "All"])
     # Get recent matches
     matches = auth.get_matches()
     # Sort matches by datetime
@@ -67,52 +87,63 @@ else:
     unsubmitted_users_matches = users_matches.loc[
         users_matches["timestamp"].isnull(), :
     ]
-    with tab0:
-        for i in range(recent_matches.shape[0]):
-            match = recent_matches.loc[recent_matches.index[i], :]
-            with st.container(border=True):
-                st.caption(match.loc["match"])
-                # Write teams
-                st.markdown(
-                    f"""##### {match.loc["home_team"]} - {match.loc["away_team"]}"""
-                )
-                # Write score, if available
-                if not np.isnan(match.loc["goals_difference"]):
-                    st.markdown(
-                        f"""### {match.loc["home_goals"]:.0f} - {match.loc["away_goals"]:.0f}"""
-                    )
-                else:
-                    st.markdown("### X - X")
-                # Find unsubmitted users for this match
-                unsubmitted_users = unsubmitted_users_matches.loc[
-                    unsubmitted_users_matches["match"] == match.loc["match"],
-                    "username",
-                ].to_list()
-                st.write(f"""Match Begins in {time_to_match(match.loc["datetime"])}""")
-                if len(unsubmitted_users) > 0:
-                    st.caption(f"""Unsubmitted users: {", ".join(unsubmitted_users)}""")
 
-    with tab1:
-        for i in range(matches.shape[0]):
-            match = matches.loc[matches.index[i], :]
-            with st.container(border=True):
-                st.caption(match.loc["match"])
-                # Write teams
-                st.markdown(
-                    f"""##### {match.loc["home_team"]} - {match.loc["away_team"]}"""
+    # Create tabs
+    tab0, tab1 = st.tabs(["Recent", "All"])
+    tab_list = [tab0, tab1]
+    match_list = [recent_matches, matches]
+    for t in range(len(tab_list)):
+        with tab_list[t]:
+            for i in range(match_list[t].shape[0]):
+                # Get match info
+                match = match_list[t]
+                match = match.loc[match.index[i], :]
+                # Get prediction timestamp
+                prediction_timestamp = (
+                    predictions.loc[
+                        (predictions["username"] == st.session_state.username)
+                        & (predictions["match"] == match.loc["match"]),
+                        "timestamp",
+                    ]
+                    .reset_index(drop=True)
+                    .get(0)
                 )
-                # Write score, if available
-                if not np.isnan(match.loc["goals_difference"]):
+                with st.container(border=True):
+                    # Write match
+                    st.caption(match.loc["match"])
+                    # Write teams
                     st.markdown(
-                        f"""### {match.loc["home_goals"]:.0f} - {match.loc["away_goals"]:.0f}"""
+                        f"""##### {match.loc["home_team"]} vs {match.loc["away_team"]}{" ✅" if prediction_timestamp is not None else ""}"""
                     )
-                else:
-                    st.markdown("### X - X")
-                # Find unsubmitted users for this match
-                unsubmitted_users = unsubmitted_users_matches.loc[
-                    unsubmitted_users_matches["match"] == match.loc["match"],
-                    "username",
-                ].to_list()
-                st.write(f"""Match Begins in {time_to_match(match.loc["datetime"])}""")
-                if len(unsubmitted_users) > 0:
-                    st.caption(f"""Unsubmitted users: {", ".join(unsubmitted_users)}""")
+                    # Write score, if available
+                    if not np.isnan(match.loc["goals_difference"]):
+                        st.markdown(
+                            f"""### {match.loc["home_goals"]:.0f} - {match.loc["away_goals"]:.0f}"""
+                        )
+                    else:
+                        st.markdown("### X - X")
+                        # Write match begins
+                        st.write(
+                            f"""Match begins in {time_to_match(match.loc["datetime"])}"""
+                        )
+                    # Find unsubmitted users for this match
+                    unsubmitted_users = unsubmitted_users_matches.loc[
+                        unsubmitted_users_matches["match"] == match.loc["match"],
+                        "username",
+                    ].to_list()
+                    if len(unsubmitted_users) > 0:
+                        st.caption(f"""Unsubmitted: {", ".join(unsubmitted_users)}""")
+
+                    # Display histogram
+                    with st.expander("Statistics"):
+                        st.plotly_chart(
+                            auth.get_match_histogram(
+                                match.loc["match"],
+                                st.session_state.username,
+                                show_all=(
+                                    True
+                                    if time_to_match(match.loc["datetime"]) is None
+                                    else False
+                                ),
+                            )
+                        )

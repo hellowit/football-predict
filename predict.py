@@ -6,8 +6,6 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 
-import plotly.graph_objects as go
-
 import time
 
 
@@ -141,6 +139,7 @@ else:
                 f"""##### {home_team} vs {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
             )
 
+            auth.display_vertical_spaces(1)
             # Goals difference input
             prediction = st.select_slider(
                 "Prediction (Goals Difference):",
@@ -161,6 +160,7 @@ else:
             else:
                 st.caption(f"""Definition: This match will be a tie.""")
 
+            auth.display_vertical_spaces(1)
             # Join usage limits with usage counts
             extra_points_usage_limits = (
                 pd.DataFrame(auth.extra_points_items)
@@ -304,84 +304,9 @@ else:
             st.markdown(
                 f"""##### {home_team} vs {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
             )
-            # Filter predictions for current match
-            match_predictions = predictions.loc[predictions["match"] == match, :]
-            # Set index to username
-            match_predictions = match_predictions.set_index("username")
-
-            # Plotly plot
-            fig = go.Figure()
-            # Force display category
-            fig.add_trace(
-                go.Bar(
-                    x=[i for i in range(-7, 8, 1)],
-                    y=[0 for _ in range(-7, 8, 1)],
-                    showlegend=False,
-                ),
-            )
-            # Iterate each user's prediction
-            for i in range(match_predictions.shape[0]):
-                username = match_predictions.index[i]
-                extra_points = match_predictions.loc[username, "extra_points"]
-                # Plot differently, if it's user's prediction
-                if username == st.session_state.username:
-                    my_prediction = True
-                else:
-                    my_prediction = False
-                # Show all, for when match has already begun
-                show_all = False
-                fig.add_trace(
-                    go.Bar(
-                        x=[match_predictions.loc[username, "prediction"]],
-                        y=[1],
-                        name=username if my_prediction | show_all else "Undisclosed",
-                        # legendgroup=extra_points,
-                        # legendgrouptitle_text=extra_points,
-                        # marker_color=auth.get_bar_color(extra_points)
-                        showlegend=True if my_prediction else False,
-                        text=(
-                            auth.extra_points_items[extra_points]["abbr"]
-                            if (my_prediction | show_all) and (extra_points is not None)
-                            else "-"
-                        ),
-                        texttemplate="%{text}",
-                        marker_color=(
-                            "rgb(255, 100, 100)"
-                            if my_prediction
-                            else "rgb(99, 110, 250)"
-                        ),
-                    ),
+            # Display historgram
+            st.plotly_chart(
+                auth.get_match_histogram(
+                    match, st.session_state.username, show_all=False
                 )
-            fig.update_layout(
-                barmode="stack",
-                showlegend=True,
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=1.02,
-                    xanchor="right",
-                    x=1,
-                ),
             )
-            fig.update_yaxes(
-                title_text="Number of Predictions",
-                title_font=dict(size=12, color="rgb(150, 150, 150)"),
-                dtick=1,
-                fixedrange=True,
-            )
-            fig.update_xaxes(
-                # showgrid=True,
-                ticks="outside",
-                tickson="boundaries",
-                ticklen=15,
-                title_text="Prediction (Goals Difference)",
-                title_font=dict(size=12, color="rgb(150, 150, 150)"),
-                tickmode="array",
-                tickvals=[i for i in range(-7, 8, 1)],
-                type="category",
-                griddash="solid",
-                fixedrange=True,
-                autorange="reversed",
-                tickangle=0,
-            )
-            st.plotly_chart(fig)
