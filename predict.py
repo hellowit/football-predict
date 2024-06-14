@@ -130,7 +130,6 @@ else:
             displayed_values = {
                 "prediction": 0,
                 "extra_points": None,
-                "confidence_level": 0.5,
             }
 
         # Create tabs
@@ -159,9 +158,13 @@ else:
                 key="input_prediction",
             )
             if prediction > 0:
-                st.caption(f"""Definition: {home_team} will win by {prediction} goals.""")
+                st.caption(
+                    f"""Definition: {home_team} will win by {prediction} goals."""
+                )
             elif prediction < 0:
-                st.caption(f"""Definition: {away_team} will win by {prediction*-1} goals.""")
+                st.caption(
+                    f"""Definition: {away_team} will win by {prediction*-1} goals."""
+                )
             else:
                 st.caption(f"""Definition: This match will be a tie.""")
 
@@ -299,16 +302,20 @@ else:
                         auth.get_predictions.clear()
                         st.rerun()
         with tab1:
+            st.markdown(f"You are viewing:")
+            st.markdown(
+                f"""##### {home_team} vs {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
+            )
             # Filter predictions for current match
             match_predictions = predictions.loc[predictions["match"] == match, :]
             match_predictions = match_predictions.set_index("username")
 
-            df = (
-                match_predictions.loc[:, ["prediction"]]
-                .value_counts()
-                .rename("count")
-                .reset_index()
-            )
+            # df = (
+            #     match_predictions.loc[:, ["prediction"]]
+            #     .value_counts()
+            #     .rename("count")
+            #     .reset_index()
+            # )
             # # Create plotly plot
             # fig = go.Figure()
             # # Force display category
@@ -417,5 +424,7 @@ else:
                 type="category",
                 griddash="solid",
                 fixedrange=True,
+                autorange="reversed",
+                tickangle=0,
             )
             st.plotly_chart(fig)
