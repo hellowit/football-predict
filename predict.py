@@ -81,6 +81,7 @@ if auth.get_username() is None:
 else:
     if st.session_state.initial:
         st.session_state.initial = False
+        st.toast(f"""Welcome **{st.session_state.username}**!""", icon="😃")
         display_unsubmitted_matches()
         # reset_inputs()
     # Display submitted dialog

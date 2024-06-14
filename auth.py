@@ -558,7 +558,7 @@ def display_user_login():
                                 st.balloons()
                                 st.toast("Registration completed!", icon="😃")
                                 st.toast("Redirecting to home...", icon="😬")
-                                time.sleep(3)
+                                time.sleep(2)
                                 # Auto login with registered username
                                 st.session_state.username = reg_username
                                 # Force clear function cache
