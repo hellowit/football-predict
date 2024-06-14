@@ -653,7 +653,7 @@ def get_match_histogram(match, username, show_all=False):
             t=20,
             b=60,
         ),
-        height=380,
+        height=360,
     )
     fig.update_yaxes(
         # title_text="Number of Predictions",
