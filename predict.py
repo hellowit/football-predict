@@ -86,7 +86,7 @@ else:
     if st.session_state.submitted:
         st.session_state.submitted = False
         display_submitted_dialog()
-    
+
     st.markdown(f"You are viewing as: **{st.session_state.username}**")
 
     # Get future matches
@@ -309,5 +309,6 @@ else:
             st.plotly_chart(
                 auth.get_match_histogram(
                     match, st.session_state.username, show_all=False
-                )
+                ),
+                use_container_width=True,
             )
