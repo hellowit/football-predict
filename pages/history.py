@@ -21,3 +21,5 @@ else:
         st.dataframe(predictions.loc[predictions["rank"] == 1, :])
     with tab1:
         st.dataframe(predictions)
+
+st.__version__
