@@ -57,13 +57,13 @@ else:
         predictions = predictions.loc[predictions["rank"] == 1, :]
         # Filter not future matches only
         predictions = predictions.loc[predictions["is_future_match"] == False, :]
-        accuracy = (
-            predictions.loc[:, ["username", "outcome"]]
-            .groupby(["username"])
-            .value_counts(normalize=True)
-            .rename("percentage")
-        ).reset_index()
-        accuracy
+        # accuracy = (
+        #     predictions.loc[:, ["username", "outcome"]]
+        #     .groupby(["username"])
+        #     .value_counts(normalize=True)
+        #     .rename("percentage")
+        # ).reset_index()
+        # accuracy
 
         scores = (
             (
@@ -96,23 +96,23 @@ else:
                 st.markdown(f"""###### Rank: {ordinal(score.loc["rank"])}""")
                 st.markdown(f"""###### Score: {score.loc["rewarded_points"]:.0f}""")
 
-            import plotly.graph_objects as go
+            # import plotly.graph_objects as go
 
-            fig = go.Figure()
-            # accuracy["username"] == score.loc["username"], "outcome"]
-            outcomes = [k for k, _ in auth.base_points.items()]
-            for outcome in outcomes:
-                fig.add_trace(
-                    go.Bar(
-                        y=[score.loc["username"]],
-                        x=accuracy.loc[
-                            (accuracy["outcome"] == outcome)
-                            & (accuracy["username"] == score.loc["username"]),
-                            "percentage",
-                        ],
-                        name=outcome,
-                        orientation="h",
-                    )
-                )
-            fig.update_layout(barmode="stack")
-            st.plotly_chart(fig)
+            # fig = go.Figure()
+            # # accuracy["username"] == score.loc["username"], "outcome"]
+            # outcomes = [k for k, _ in auth.base_points.items()]
+            # for outcome in outcomes:
+            #     fig.add_trace(
+            #         go.Bar(
+            #             y=[score.loc["username"]],
+            #             x=accuracy.loc[
+            #                 (accuracy["outcome"] == outcome)
+            #                 & (accuracy["username"] == score.loc["username"]),
+            #                 "percentage",
+            #             ],
+            #             name=outcome,
+            #             orientation="h",
+            #         )
+            #     )
+            # fig.update_layout(barmode="stack")
+            # st.plotly_chart(fig)
