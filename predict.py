@@ -77,6 +77,11 @@ if "submitted" not in st.session_state:
 if auth.get_username() is None:
     auth.display_user_login()
 else:
+    # st.write(f"You are viewing as: **{st.session_state.username}**")
+    if st.button(f"You are viewing as: **{st.session_state.username}**"):
+        st.cache_data.clear()
+
+    # Display alerts
     if st.session_state.initial:
         st.session_state.initial = False
         st.toast(f"""Welcome **{st.session_state.username}**!""", icon="😃")
@@ -86,8 +91,6 @@ else:
     if st.session_state.submitted:
         st.session_state.submitted = False
         display_submitted_dialog()
-
-    st.markdown(f"You are viewing as: **{st.session_state.username}**")
 
     # Get future matches
     future_matches = auth.get_future_matches(6)

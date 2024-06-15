@@ -49,7 +49,9 @@ auth.set_page_config()
 if auth.get_username() is None:
     auth.display_user_login()
 else:
-    st.write(f"You are viewing as: **{st.session_state.username}**")
+    # st.write(f"You are viewing as: **{st.session_state.username}**")
+    if st.button(f"You are viewing as: **{st.session_state.username}**"):
+        st.cache_data.clear()
 
     # Create source link
     st.link_button("Source: Wikipedia", "https://en.wikipedia.org/wiki/UEFA_Euro_2024")
@@ -144,11 +146,16 @@ else:
                                     if time_to_match(match.loc["datetime"]) is None
                                     else False
                                 ),
-                            )
+                            ),
+                            use_container_width=True,
                         )
                         match_predictions = predictions.loc[
                             predictions["match"] == match.loc["match"],
                             ["username", "extra_points", "rewarded_points"],
                         ]
-                        match_predictions.loc[:, "extra_points"] = match_predictions.loc[:, "extra_points"].apply(lambda x: auth.extra_points_items.get(x))
+                        match_predictions.loc[:, "extra_points"] = (
+                            match_predictions.loc[:, "extra_points"].apply(
+                                lambda x: auth.extra_points_items.get(x)
+                            )
+                        )
                         # match_predictions
