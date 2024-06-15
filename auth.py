@@ -15,6 +15,11 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Extra points items config
 extra_points_items = {
     "extra_points_mult_3": {
@@ -147,6 +152,7 @@ def get_datetime_now():
         tz=dt.timezone(dt.timedelta(hours=7), name="Asia/Bangkok")
     )
     return now
+
 
 def get_matches_from_wikipedia():
     # Web scrape from Wikipedia
@@ -288,7 +294,13 @@ def get_matches():
 
 
 def get_firestore_database():
-    db = firestore.Client.from_service_account_info(json.loads(st.secrets["textkey"]))
+    try:
+        textkey = os.environ["textkey"]
+    except:
+        textkey = st.secrets["textkey"]
+
+    db = firestore.Client.from_service_account_info(json.loads(textkey))
+
     return db
 
 

@@ -8,13 +8,6 @@ import datetime as dt
 
 import time
 
-import os
-try:
-    a = os.environ["textkey"]
-    print("pass")
-except:
-    print("failed")
-
 
 # def reset_inputs():
 #     st.session_state.input_prediction = 0
