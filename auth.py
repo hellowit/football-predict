@@ -601,8 +601,8 @@ def get_match_histogram(match, username, show_all=False):
     # Force display category
     fig.add_trace(
         go.Bar(
-            x=[i for i in range(-7, 8, 1)],
-            y=[0 for _ in range(-7, 8, 1)],
+            x=[i for i in range(-6, 7, 1)],
+            y=[0 for _ in range(-6, 7, 1)],
             showlegend=False,
         ),
     )
@@ -670,7 +670,7 @@ def get_match_histogram(match, username, show_all=False):
         tickson="boundaries",
         ticklen=15,
         tickmode="array",
-        tickvals=[i for i in range(-7, 8, 1)],
+        tickvals=[i for i in range(-6, 7, 1)],
         tickfont_size=14,
         type="category",
         griddash="solid",

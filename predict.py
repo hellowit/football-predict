@@ -144,7 +144,7 @@ else:
             # Goals difference input
             prediction = st.select_slider(
                 "Prediction (Goals Difference):",
-                options=[i for i in range(7, -8, -1)],
+                options=[i for i in range(6, -7, -1)],
                 # value=0,
                 value=displayed_values["prediction"],
                 key="input_prediction",
