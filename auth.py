@@ -148,7 +148,6 @@ def get_datetime_now():
     )
     return now
 
-
 def get_matches_from_wikipedia():
     # Web scrape from Wikipedia
     response = requests.get(url="https://en.wikipedia.org/wiki/UEFA_Euro_2024")
@@ -334,6 +333,7 @@ def get_predictions():
             "home_goals",
             "away_goals",
             "goals_difference",
+            "is_future_match",
         ],
     ]
 
@@ -655,6 +655,7 @@ def get_match_histogram(match, username, show_all=False):
             b=60,
         ),
         height=360,
+        autosize=True,
     )
     fig.update_yaxes(
         # title_text="Number of Predictions",

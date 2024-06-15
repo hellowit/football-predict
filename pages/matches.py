@@ -50,7 +50,7 @@ if auth.get_username() is None:
     auth.display_user_login()
 else:
     st.write(f"You are viewing as: **{st.session_state.username}**")
-    
+
     # Create source link
     st.link_button("Source: Wikipedia", "https://en.wikipedia.org/wiki/UEFA_Euro_2024")
     st.caption(
@@ -121,7 +121,6 @@ else:
                             f"""### {match.loc["home_goals"]:.0f} - {match.loc["away_goals"]:.0f}"""
                         )
                     else:
-                        st.markdown("### X - X")
                         # Write match begins
                         st.write(
                             f"""Match begins in {time_to_match(match.loc["datetime"])}"""
@@ -147,3 +146,9 @@ else:
                                 ),
                             )
                         )
+                        match_predictions = predictions.loc[
+                            predictions["match"] == match.loc["match"],
+                            ["username", "extra_points", "rewarded_points"],
+                        ]
+                        match_predictions.loc[:, "extra_points"] = match_predictions.loc[:, "extra_points"].apply(lambda x: auth.extra_points_items.get(x))
+                        # match_predictions
