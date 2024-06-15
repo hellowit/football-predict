@@ -32,7 +32,7 @@ def display_submitted_dialog():
     st.toast("Prediction Submitted!", icon="😃")
 
 
-def display_unsubmitted_matches():
+def display_not_submitted_matches():
     # Get future matches
     future_matches = auth.get_future_matches(3)
     # Get pridictions
@@ -43,8 +43,8 @@ def display_unsubmitted_matches():
     user_predictions = predictions.loc[
         predictions["username"] == st.session_state.username, :
     ]
-    # Find unsubmitted predictions
-    unsubmitted_matches = (
+    # Find not_submitted predictions
+    not_submitted_matches = (
         future_matches.loc[:, ["match", "datetime"]]
         .set_index("match")
         .join(
@@ -52,10 +52,10 @@ def display_unsubmitted_matches():
             how="left",
         )
     )
-    unsubmitted_matches = unsubmitted_matches.loc[
-        unsubmitted_matches["timestamp"].isnull(), :
+    not_submitted_matches = not_submitted_matches.loc[
+        not_submitted_matches["timestamp"].isnull(), :
     ]
-    for match in unsubmitted_matches.index:
+    for match in not_submitted_matches.index:
         st.toast(f"Please submit your prediction for **{match}**.", icon="⚽️")
 
 
@@ -85,7 +85,7 @@ else:
     if st.session_state.initial:
         st.session_state.initial = False
         st.toast(f"""Welcome **{st.session_state.username}**!""", icon="😃")
-        display_unsubmitted_matches()
+        display_not_submitted_matches()
         # reset_inputs()
     # Display submitted dialog
     if st.session_state.submitted:

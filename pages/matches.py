@@ -87,7 +87,7 @@ else:
         on=["match", "username"],
     )
     # Find unsubmitted users
-    unsubmitted_users_matches = users_matches.loc[
+    not_submitted_users_matches = users_matches.loc[
         users_matches["timestamp"].isnull(), :
     ]
     # Create tabs
@@ -128,12 +128,12 @@ else:
                             f"""Match begins in {time_to_match(match.loc["datetime"])}"""
                         )
                     # Find unsubmitted users for this match
-                    unsubmitted_users = unsubmitted_users_matches.loc[
-                        unsubmitted_users_matches["match"] == match.loc["match"],
+                    not_submitted_users = not_submitted_users_matches.loc[
+                        not_submitted_users_matches["match"] == match.loc["match"],
                         "username",
                     ].to_list()
-                    if len(unsubmitted_users) > 0:
-                        st.caption(f"""Unsubmitted: {", ".join(unsubmitted_users)}""")
+                    if len(not_submitted_users) > 0:
+                        st.caption(f"""Not submitted: {", ".join(not_submitted_users)}""")
 
                     # Display histogram
                     with st.expander("Statistics"):
