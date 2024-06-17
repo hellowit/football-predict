@@ -95,7 +95,7 @@ else:
                 user_predictions = predictions.loc[
                     predictions["username"] == score.loc["username"], :
                 ]
-                user_predictions = user_predictions.sort_values("datetime")
+                user_predictions = user_predictions.sort_values("datetime").reset_index()
 
                 # Join usage limits with usage counts
                 extra_points_usage_limits = (
@@ -192,8 +192,18 @@ else:
                 with st.expander("Details", expanded=False):
                     # st.write(predictions.loc[predictions["username"] == score.loc["username"], "extra_points"].value_counts())
                     st.write(
-                        predictions.loc[
-                            predictions["username"] == score.loc["username"], ["match", "home_goals", "away_goals", "goals_difference", "prediction", "extra_points", "outcome", "rewarded_points"]
+                        user_predictions.loc[
+                            :,
+                            [
+                                "match",
+                                "home_goals",
+                                "away_goals",
+                                "goals_difference",
+                                "prediction",
+                                "extra_points",
+                                "outcome",
+                                "rewarded_points",
+                            ],
                         ]
                     )
                     st.write(
