@@ -89,30 +89,112 @@ else:
 
         for i in range(scores.shape[0]):
             with st.container(border=True):
+                # Filter user's score
                 score = scores.loc[scores.index[i], :]
+                # Filter user's predictions
+                user_predictions = predictions.loc[
+                    predictions["username"] == score.loc["username"], :
+                ]
+                user_predictions = user_predictions.sort_values("datetime")
+
+                # Join usage limits with usage counts
+                extra_points_usage_limits = (
+                    pd.DataFrame(auth.extra_points_items)
+                    .T.join(user_predictions.loc[:, "extra_points"].value_counts())
+                    .fillna(0)
+                )
+                # Calculate extra points items available to use
+                extra_points_usage_limits.loc[:, "available"] = (
+                    extra_points_usage_limits.loc[:, "usage_limit"]
+                    - extra_points_usage_limits.loc[:, "extra_points"]
+                )
+                extra_points_availabilities = (
+                    extra_points_usage_limits.loc[:, "available"]
+                    .reset_index()
+                    .rename(columns={"index": "extra_points"})
+                )
+                extra_points_availabilities.loc[:, "extra_points_item"] = (
+                    extra_points_availabilities.loc[:, "extra_points"].apply(
+                        lambda x: auth.extra_points_items[x]["name"]
+                    )
+                )
+
+                # Display username
                 st.markdown(
                     f"""#### {score.loc["username"]}{rank_icon(score.loc["rank"])}"""
                 )
+
                 st.markdown(f"""###### Rank: {ordinal(score.loc["rank"])}""")
                 st.markdown(f"""###### Score: {score.loc["rewarded_points"]:.0f}""")
 
-            # import plotly.graph_objects as go
+                fig = go.Figure()
+                for match in user_predictions.loc[:, "match"]:
+                    fig.add_trace(
+                        go.Bar(
+                            x=user_predictions.loc[
+                                user_predictions["match"] == match, "rewarded_points"
+                            ],
+                            texttemplate="%{x}",
+                            textangle=0,
+                            hovertemplate="%{x}",
+                            name=match,
+                            showlegend=False,
+                            orientation="h",
+                        )
+                    )
+                fig.update_layout(
+                    barmode="stack",
+                    showlegend=False,
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="right",
+                        x=1,
+                    ),
+                    margin=dict(
+                        t=0,
+                        b=0,
+                    ),
+                    height=30,
+                    autosize=True,
+                )
+                fig.update_yaxes(
+                    # dtick=1,
+                    # tickfont_size=14,
+                    fixedrange=True,
+                    visible=False,
+                    zeroline=False,
+                )
+                fig.update_xaxes(
+                    # title_text="Prediction (Goals Difference)",
+                    # title_font=dict(size=12, color="rgb(150, 150, 150)"),
+                    # ticks="outside",
+                    # tickson="boundaries",
+                    # ticklen=15,
+                    # tickmode="array",
+                    # tickvals=[i for i in range(-6, 7, 1)],
+                    # tickfont_size=14,
+                    # type="category",
+                    # griddash="solid",
+                    fixedrange=True,
+                    # autorange="reversed",
+                    # tickangle=0,
+                    range=(0, scores.loc[:, "rewarded_points"].max()),
+                    visible=False,
+                    zeroline=False,
+                )
+                st.plotly_chart(fig, use_container_width=True)
 
-            # fig = go.Figure()
-            # # accuracy["username"] == score.loc["username"], "outcome"]
-            # outcomes = [k for k, _ in auth.base_points.items()]
-            # for outcome in outcomes:
-            #     fig.add_trace(
-            #         go.Bar(
-            #             y=[score.loc["username"]],
-            #             x=accuracy.loc[
-            #                 (accuracy["outcome"] == outcome)
-            #                 & (accuracy["username"] == score.loc["username"]),
-            #                 "percentage",
-            #             ],
-            #             name=outcome,
-            #             orientation="h",
-            #         )
-            #     )
-            # fig.update_layout(barmode="stack")
-            # st.plotly_chart(fig)
+                with st.expander("Details", expanded=False):
+                    # st.write(predictions.loc[predictions["username"] == score.loc["username"], "extra_points"].value_counts())
+                    st.write(
+                        predictions.loc[
+                            predictions["username"] == score.loc["username"], :
+                        ]
+                    )
+                    st.write(
+                        extra_points_availabilities.loc[
+                            :, ["extra_points_item", "available"]
+                        ].set_index("extra_points_item")
+                    )
