@@ -136,6 +136,7 @@ else:
                             ],
                             texttemplate="%{x}",
                             textangle=0,
+                            textfont_size=14,
                             hovertemplate="%{x}",
                             name=match,
                             showlegend=False,
