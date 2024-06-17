@@ -192,7 +192,7 @@ else:
                     # st.write(predictions.loc[predictions["username"] == score.loc["username"], "extra_points"].value_counts())
                     st.write(
                         predictions.loc[
-                            predictions["username"] == score.loc["username"], :
+                            predictions["username"] == score.loc["username"], ["match", "home_goals", "away_goals", "goals_difference", "prediction", "extra_points", "outcome", "rewarded_points"]
                         ]
                     )
                     st.write(
