@@ -93,7 +93,7 @@ else:
         display_submitted_dialog()
 
     # Get future matches
-    future_matches = auth.get_future_matches(10)
+    future_matches = auth.get_future_matches(20)
     # Check if there is any available future matches
     if future_matches.shape[0] == 0:
         st.markdown("There is no more matches to predict!")
@@ -140,7 +140,7 @@ else:
         with tab0:
             st.markdown(f"You are predicting:")
             st.markdown(
-                f"""##### {home_team} vs {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
+                f"""##### {home_team} {auth.team_flags.get(home_team)} vs {auth.team_flags.get(away_team)} {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
             )
 
             auth.display_vertical_spaces(1)
@@ -306,7 +306,7 @@ else:
         with tab1:
             st.markdown(f"You are viewing:")
             st.markdown(
-                f"""##### {home_team} vs {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
+                f"""##### {home_team} {auth.team_flags.get(home_team)} vs {auth.team_flags.get(away_team)} {away_team}{" ✅" if displayed_values.get("timestamp") is not None else ""}"""
             )
             # Display historgram
             st.plotly_chart(

@@ -115,7 +115,7 @@ else:
                     st.caption(match.loc["match"])
                     # Write teams
                     st.markdown(
-                        f"""##### {match.loc["home_team"]} vs {match.loc["away_team"]}{" ✅" if prediction_timestamp is not None else ""}"""
+                        f"""##### {match.loc["home_team"]} {auth.team_flags.get(match.loc["home_team"])} vs {auth.team_flags.get(match.loc["away_team"])} {match.loc["away_team"]}{" ✅" if prediction_timestamp is not None else ""}"""
                     )
                     # Write score, if available
                     if not np.isnan(match.loc["goals_difference"]):

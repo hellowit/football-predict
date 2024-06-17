@@ -65,6 +65,33 @@ base_points = {
 #     "I can see the future!": 1,
 # }
 
+team_flags = {
+    "Germany": "🇩🇪",
+    "Belgium": "🇧🇪",
+    "France": "🇫🇷",
+    "Portugal": "🇵🇹",
+    "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "Spain": "🇪🇸",
+    "Turkey": "🇹🇷",
+    "Austria": "🇦🇹",
+    "England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    "Hungary": "🇭🇺",
+    "Slovakia": "🇸🇰",
+    "Albania": "🇦🇱",
+    "Denmark": "🇩🇰",
+    "Netherlands": "🇳🇱",
+    "Romania": "🇷🇴",
+    "Switzerland": "🇨🇭",
+    "Serbia": "🇷🇸",
+    "Czech Republic": "🇨🇿",
+    "Italy": "🇮🇹",
+    "Slovenia": "🇸🇰",
+    "Croatia": "🇭🇷",
+    "Georgia": "🇬🇪",
+    "Ukraine": "🇺🇦",
+    "Poland": "🇵🇱",
+}
+
 
 def get_bar_color(extra_points):
     bar_color = {
