@@ -184,7 +184,9 @@ else:
                     visible=False,
                     zeroline=False,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(
+                    fig, use_container_width=True, config={"displayModeBar": False}
+                )
 
                 with st.expander("Details", expanded=False):
                     # st.write(predictions.loc[predictions["username"] == score.loc["username"], "extra_points"].value_counts())
